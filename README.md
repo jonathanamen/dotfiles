@@ -8,6 +8,7 @@ Written to be readable, not just runnable. Each command has an explanation so yo
 
 ## Table of contents
 
+0. [Wipe and reinstall VS Code](#0-wipe-and-reinstall-vs-code)
 1. [Prerequisites](#1-prerequisites)
 2. [Install WSL](#2-install-wsl)
 3. [Configure your Linux environment](#3-configure-your-linux-environment)
@@ -17,6 +18,52 @@ Written to be readable, not just runnable. Each command has an explanation so yo
 7. [Deploy your VS Code environment](#7-deploy-your-vs-code-environment)
 8. [Verify everything works](#8-verify-everything-works)
 9. [Ongoing workflow](#9-ongoing-workflow)
+
+---
+
+## 0. Wipe and reinstall VS Code
+
+Follow this section when you want a clean VS Code install on a machine that already has VS Code. Skip to step 1 if you are setting up a brand new machine.
+
+### Pre-wipe checklist
+
+Before uninstalling, confirm the following are saved:
+
+- Extensions are documented in vscode/global/extensions.txt and vscode/global/extensions.md
+- Settings are saved in vscode/global/settings.json
+- Keybindings are saved in vscode/global/keybindings.json
+- Any custom snippets have been exported (File, Preferences, Configure User Snippets)
+- Any project workspace configs are saved under vscode/projects/
+- All changes are committed and pushed to GitHub
+
+If anything is missing, run save.sh first before wiping.
+
+### Uninstall VS Code
+
+1. Open Windows Settings, go to Apps, search "Visual Studio Code", click Uninstall
+2. After uninstall completes, delete leftover user data:
+   - Delete C:\Users\thene\AppData\Roaming\Code
+   - Delete C:\Users\thene\.vscode
+
+These folders are not removed by the uninstaller. If you skip this step your old settings will survive the wipe.
+
+### Reinstall VS Code
+
+1. Download the installer from code.visualstudio.com
+2. Run the installer and accept defaults
+3. Check "Add to PATH" during install — this lets you open VS Code from the terminal
+4. Install the WSL extension: open VS Code, go to Extensions (Ctrl+Shift+X), search "WSL", install the Microsoft WSL extension
+5. Open your WSL terminal and run:
+
+    cd ~/repos/dotfiles
+    code .
+
+6. Deploy your saved environment:
+
+    chmod +x vscode/deploy.sh vscode/save.sh
+    ./vscode/deploy.sh p008-arcane-predictive
+
+7. Restart VS Code to apply all settings
 
 ---
 
@@ -237,7 +284,8 @@ Whenever you change settings or install new extensions, snapshot them:
         ├── global/
         │   ├── settings.json                          <- global editor settings
         │   ├── keybindings.json                       <- global keybindings
-        │   └── extensions.txt                         <- global extension list
+        │   ├── extensions.txt                         <- global extension list (machine-readable)
+        │   └── extensions.md                          <- extension reference with descriptions and docs
         └── projects/
             └── p008-arcane-predictive/
                 ├── settings.json                      <- workspace-level overrides
