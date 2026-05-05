@@ -16,7 +16,7 @@ VSCODE_SETTINGS_DIR="$HOME/.vscode-server/data/Machine"
 # Native Linux alternative:
 # VSCODE_SETTINGS_DIR="$HOME/.config/Code/User"
 
-echo "=== Arcane Dev Env Save ==="
+echo "=== VS CODE Dev Env Save ==="
 
 echo ""
 echo "[1/2] Saving settings and keybindings..."

@@ -17,7 +17,7 @@ VSCODE_SETTINGS_DIR="$HOME/.vscode-server/data/Machine"
 # Native Linux alternative:
 # VSCODE_SETTINGS_DIR="$HOME/.config/Code/User"
 
-echo "=== Arcane Dev Env Deploy ==="
+echo "=== VS CODE Dev Env Deploy ==="
 
 echo ""
 echo "[1/3] Copying global VS Code settings..."

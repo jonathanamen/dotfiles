@@ -1,6 +1,6 @@
 # P008 Arcane Predictive — project-specific extensions
 # Installed in addition to global extensions when deploying this project
 ms-python.python
-ms-python.pylance
+ms-python.vscode-pylance
 ms-toolsai.jupyter
 njpwerner.autodocstring
