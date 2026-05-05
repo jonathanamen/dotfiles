@@ -1,0 +1,4 @@
+# Global VS Code extensions
+# One extension ID per line — publisher.extension-name format
+# Lines starting with # are comments and are ignored by deploy.sh
+# Run save.sh to auto-populate this from your live install
