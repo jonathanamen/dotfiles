@@ -40,10 +40,11 @@ If anything is missing, run save.sh first before wiping.
 
 ### Uninstall VS Code
 
-1. Open Windows Settings, go to Apps, search "Visual Studio Code", click Uninstall
+1. Open Windows Settings, go to Apps, click Installed Apps, then search "Visual Studio Code" and click Uninstall
 2. After uninstall completes, delete leftover user data:
    - Delete C:\Users\thene\AppData\Roaming\Code
    - Delete C:\Users\thene\.vscode
+Note: Registry cleanup is intentionally skipped — the VS Code uninstaller handles its own registry entries and all user config lives in the filesystem folders above.
 
 These folders are not removed by the uninstaller. If you skip this step your old settings will survive the wipe.
 
