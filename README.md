@@ -299,3 +299,51 @@ Whenever you change settings or install new extensions, snapshot them:
 ### p008-arcane-predictive
 
 MTG trading company (Arcane Predictive). Python/data stack. See vscode/projects/p008-arcane-predictive/ for workspace settings and extensions.
+
+---
+
+## 10. System test
+
+Run this to verify the full deploy pipeline works end to end. Do this after any significant changes to the repo or when setting up a new machine.
+
+### Full system test
+
+    # 1. Move your current dotfiles folder out of the way
+    mv ~/repos/dotfiles ~/repos/dotfiles.bak
+
+    # 2. Clone fresh from GitHub
+    git clone git@github.com:YOUR_USERNAME/dotfiles.git ~/repos/dotfiles
+
+    # 3. Move into the repo
+    cd ~/repos/dotfiles
+
+    # 4. Make scripts executable
+    chmod +x vscode/deploy.sh vscode/save.sh
+
+    # 5. Run deploy
+    ./vscode/deploy.sh p008-arcane-predictive
+
+    # 6. Restart VS Code and verify extensions are installed
+    # Check: Extensions panel should show all 18 extensions
+    # Check: Terminal opens bash not PowerShell
+    # Check: Bottom left shows WSL: Ubuntu
+    # Check: Color theme is Dark Modern
+
+    # 7. If everything looks good, remove the backup
+    rm -rf ~/repos/dotfiles.bak
+
+    # 8. If something went wrong, restore the backup
+    mv ~/repos/dotfiles.bak ~/repos/dotfiles
+
+### Smoke test (quick check without full redeploy)
+
+    # Verify repo is clean and up to date
+    cd ~/repos/dotfiles
+    git status
+    git log --oneline -5
+
+    # Verify extensions match curated list
+    diff vscode/global/extensions.txt <(code --list-extensions | sort | grep -v '^Extensions')
+
+    # Verify scripts are executable
+    ls -la vscode/*.sh
