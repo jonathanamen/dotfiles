@@ -1,6 +1,6 @@
 # dotfiles
 
-VS Code environment management repo. Follow this runbook top to bottom on any fresh Windows 11 machine and you'll end up fully set up — WSL, Git, VS Code, and all project configs deployed.
+Dev environment management repo. Follow this runbook top to bottom on any fresh Windows 11 machine and you'll end up fully set up — WSL, Git, conda, VS Code, and all project configs deployed.
 
 Written to be readable, not just runnable. Each command has an explanation so you understand what you're doing and why.
 
@@ -15,9 +15,10 @@ Written to be readable, not just runnable. Each command has an explanation so yo
 4. [Install and configure Git](#4-install-and-configure-git)
 5. [Clone this repo](#5-clone-this-repo)
 6. [Install VS Code](#6-install-vs-code)
-7. [Deploy your VS Code environment](#7-deploy-your-vs-code-environment)
+7. [Deploy your environment](#7-deploy-your-environment)
 8. [Verify everything works](#8-verify-everything-works)
 9. [Ongoing workflow](#9-ongoing-workflow)
+10. [System test](#10-system-test)
 
 ---
 
@@ -29,14 +30,14 @@ Follow this section when you want a clean VS Code install on a machine that alre
 
 Before uninstalling, confirm the following are saved:
 
-- Extensions are documented in vscode/global/extensions.txt and vscode/global/extensions.md
-- Settings are saved in vscode/global/settings.json
-- Keybindings are saved in vscode/global/keybindings.json
+- Extensions are documented in 2_vscode/global/extensions.txt and 2_vscode/global/extensions.md
+- Settings are saved in 2_vscode/global/settings.json
+- Keybindings are saved in 2_vscode/global/keybindings.json
 - Any custom snippets have been exported (File, Preferences, Configure User Snippets)
-- Any project workspace configs are saved under vscode/projects/
+- Any project workspace configs are saved under 2_vscode/projects/
 - All changes are committed and pushed to GitHub
 
-If anything is missing, run save.sh first before wiping.
+If anything is missing, run 1_save.sh first before wiping.
 
 ### Uninstall VS Code
 
@@ -44,9 +45,10 @@ If anything is missing, run save.sh first before wiping.
 2. After uninstall completes, delete leftover user data:
    - Delete C:\Users\thene\AppData\Roaming\Code
    - Delete C:\Users\thene\.vscode
-Note: Registry cleanup is intentionally skipped — the VS Code uninstaller handles its own registry entries and all user config lives in the filesystem folders above.
 
 These folders are not removed by the uninstaller. If you skip this step your old settings will survive the wipe.
+
+Note: Registry cleanup is intentionally skipped — the VS Code uninstaller handles its own registry entries and all user config lives in the filesystem folders above.
 
 ### Reinstall VS Code
 
@@ -61,8 +63,8 @@ These folders are not removed by the uninstaller. If you skip this step your old
 
 6. Deploy your saved environment:
 
-    chmod +x vscode/deploy.sh vscode/save.sh
-    ./vscode/deploy.sh p008-arcane-predictive
+    chmod +x 2_vscode/1_save.sh 2_vscode/3_deploy.sh
+    ./2_vscode/3_deploy.sh p008-arcane-predictive
 
 7. Restart VS Code to apply all settings
 
@@ -185,10 +187,10 @@ You should see: Hi username! You have successfully authenticated...
 
 ## 5. Clone this repo
 
-    cd ~
-    mkdir repos && cd repos
-    git clone git@github.com:YOUR_USERNAME/dotfiles.git
-    cd dotfiles
+    cd ~                                                    # go to home directory
+    mkdir repos && cd repos                                 # create repos folder
+    git clone git@github.com:YOUR_USERNAME/dotfiles.git    # clone from GitHub
+    cd dotfiles                                             # move into repo
 
 ~ is shorthand for your home directory (/home/yourusername). All your work should live here inside WSL, not in /mnt/c/. WSL can access Windows files but performance is better working natively in the Linux filesystem.
 
@@ -217,16 +219,23 @@ This is the setup. Your editor is Windows (familiar UI, good performance), your 
 
 ---
 
-## 7. Deploy your VS Code environment
+## 7. Deploy your environment
 
-    # Make the scripts executable (only needed once after cloning)
-    chmod +x vscode/deploy.sh vscode/save.sh
+Make all scripts executable first (only needed once after cloning):
 
-    # Deploy global settings only
-    ./vscode/deploy.sh
+    chmod +x 1_conda/1_save.sh 1_conda/3_deploy.sh
+    chmod +x 2_vscode/1_save.sh 2_vscode/3_deploy.sh
+    chmod +x 3_shell/1_save.sh 3_shell/3_deploy.sh
 
-    # Deploy global + project-specific config
-    ./vscode/deploy.sh p008-arcane-predictive
+Run the full bootstrap to deploy everything in the correct order:
+
+    ./bootstrap.sh
+
+Or deploy individual modules:
+
+    cd 1_conda && ./3_deploy.sh                            # Python environments only
+    cd 2_vscode && ./3_deploy.sh p008-arcane-predictive    # VS Code only
+    cd 3_shell && ./3_deploy.sh                            # shell config only
 
 chmod +x marks a file as executable. Without it, bash will not run it as a script. ./ means "run this file from the current directory."
 
@@ -234,10 +243,10 @@ chmod +x marks a file as executable. Without it, bash will not run it as a scrip
 
 ## 8. Verify everything works
 
-    git config --list
-    git status
-    code .
-    echo $SHELL
+    git config --list       # git is configured
+    git status              # repo is clean
+    code .                  # VS Code opens from WSL
+    echo $SHELL             # confirms bash is your shell
 
 In VS Code, open a new terminal (Ctrl+backtick). It should open a bash terminal inside WSL, not PowerShell.
 
@@ -250,7 +259,8 @@ In VS Code, open a new terminal (Ctrl+backtick). It should open a bash terminal 
 Whenever you change settings or install new extensions, snapshot them:
 
     cd ~/repos/dotfiles
-    ./vscode/save.sh
+    ./2_vscode/1_save.sh
+    git diff
     git add -A
     git commit -m "chore: snapshot vscode env $(date +%Y-%m-%d)"
     git push
@@ -259,46 +269,19 @@ Whenever you change settings or install new extensions, snapshot them:
 
     git clone git@github.com:YOUR_USERNAME/dotfiles.git ~/repos/dotfiles
     cd ~/repos/dotfiles
-    chmod +x vscode/deploy.sh vscode/save.sh
-    ./vscode/deploy.sh p008-arcane-predictive
+    chmod +x 2_vscode/1_save.sh 2_vscode/3_deploy.sh
+    ./2_vscode/3_deploy.sh p008-arcane-predictive
 
 ### Adding a new project
 
-1. Create a folder under vscode/projects/:
+1. Create a folder under 2_vscode/projects/:
 
-    mkdir -p vscode/projects/your-project-name
-    touch vscode/projects/your-project-name/settings.json
-    touch vscode/projects/your-project-name/extensions.txt
+    mkdir -p 2_vscode/projects/your-project-name
+    touch 2_vscode/projects/your-project-name/settings.json
+    touch 2_vscode/projects/your-project-name/extensions.txt
 
 2. Add workspace settings and extensions
-3. Deploy with ./vscode/deploy.sh your-project-name
-
----
-
-## Repo structure
-
-    dotfiles/
-    ├── README.md                                      <- this runbook
-    └── vscode/
-        ├── deploy.sh                                  <- restore env on a fresh machine
-        ├── save.sh                                    <- snapshot current VS Code state
-        ├── global/
-        │   ├── settings.json                          <- global editor settings
-        │   ├── keybindings.json                       <- global keybindings
-        │   ├── extensions.txt                         <- global extension list (machine-readable)
-        │   └── extensions.md                          <- extension reference with descriptions and docs
-        └── projects/
-            └── p008-arcane-predictive/
-                ├── settings.json                      <- workspace-level overrides
-                └── extensions.txt                     <- project-specific extensions
-
----
-
-## Projects
-
-### p008-arcane-predictive
-
-MTG trading company (Arcane Predictive). Python/data stack. See vscode/projects/p008-arcane-predictive/ for workspace settings and extensions.
+3. Deploy with ./2_vscode/3_deploy.sh your-project-name
 
 ---
 
@@ -308,42 +291,72 @@ Run this to verify the full deploy pipeline works end to end. Do this after any 
 
 ### Full system test
 
-    # 1. Move your current dotfiles folder out of the way
-    mv ~/repos/dotfiles ~/repos/dotfiles.bak
+    mv ~/repos/dotfiles ~/repos/dotfiles.bak               # rename current folder as backup
+    git clone git@github.com:YOUR_USERNAME/dotfiles.git ~/repos/dotfiles  # clone fresh
+    cd ~/repos/dotfiles                                     # move into fresh clone
+    chmod +x 2_vscode/1_save.sh 2_vscode/3_deploy.sh       # make scripts executable
+    ./2_vscode/3_deploy.sh p008-arcane-predictive           # run deploy
 
-    # 2. Clone fresh from GitHub
-    git clone git@github.com:YOUR_USERNAME/dotfiles.git ~/repos/dotfiles
+    # Verify in VS Code:
+    # - Extensions panel shows all 18 extensions
+    # - Terminal opens bash not PowerShell
+    # - Bottom left shows WSL: Ubuntu
+    # - Color theme is Dark Modern
 
-    # 3. Move into the repo
-    cd ~/repos/dotfiles
-
-    # 4. Make scripts executable
-    chmod +x vscode/deploy.sh vscode/save.sh
-
-    # 5. Run deploy
-    ./vscode/deploy.sh p008-arcane-predictive
-
-    # 6. Restart VS Code and verify extensions are installed
-    # Check: Extensions panel should show all 18 extensions
-    # Check: Terminal opens bash not PowerShell
-    # Check: Bottom left shows WSL: Ubuntu
-    # Check: Color theme is Dark Modern
-
-    # 7. If everything looks good, remove the backup
-    rm -rf ~/repos/dotfiles.bak
-
-    # 8. If something went wrong, restore the backup
-    mv ~/repos/dotfiles.bak ~/repos/dotfiles
+    rm -rf ~/repos/dotfiles.bak                            # clean up backup if test passed
+    # mv ~/repos/dotfiles.bak ~/repos/dotfiles             # restore backup if test failed
 
 ### Smoke test (quick check without full redeploy)
 
-    # Verify repo is clean and up to date
     cd ~/repos/dotfiles
-    git status
-    git log --oneline -5
+    git status                                             # repo is clean
+    git log --oneline -5                                   # recent commits look correct
+    diff 2_vscode/global/extensions.txt <(code --list-extensions | sort | grep -v '^Extensions')  # curated list matches installed
+    ls -la 2_vscode/*.sh                                   # scripts are executable
 
-    # Verify extensions match curated list
-    diff vscode/global/extensions.txt <(code --list-extensions | sort | grep -v '^Extensions')
+---
 
-    # Verify scripts are executable
-    ls -la vscode/*.sh
+## Repo structure
+
+    dotfiles/
+    ├── README.md                                          <- this runbook
+    ├── CONTRIBUTING.md                                    <- standards and conventions
+    ├── bootstrap.sh                                       <- deploy all modules in order
+    ├── 1_conda/                                           <- Python environment module
+    │   ├── 0_setup.sh                                     <- prerequisites
+    │   ├── 1_save.sh                                      <- snapshot environments
+    │   ├── 2_wipe.sh                                      <- clean uninstall
+    │   ├── 3_deploy.sh                                    <- full install
+    │   ├── 4_test.sh                                      <- validate
+    │   └── environments/                                  <- saved environment definitions
+    ├── 2_vscode/                                          <- VS Code module
+    │   ├── 0_setup.sh                                     <- prerequisites
+    │   ├── 1_save.sh                                      <- snapshot settings and extensions
+    │   ├── 2_wipe.sh                                      <- clean uninstall
+    │   ├── 3_deploy.sh                                    <- full install
+    │   ├── 4_test.sh                                      <- validate
+    │   ├── global/
+    │   │   ├── settings.json                              <- global editor settings
+    │   │   ├── keybindings.json                           <- global keybindings
+    │   │   ├── extensions.txt                             <- curated extension list
+    │   │   ├── extensions.snapshot                        <- live installed extensions
+    │   │   └── extensions.md                              <- extension reference with docs
+    │   └── projects/
+    │       └── p008-arcane-predictive/
+    │           ├── settings.json                          <- workspace-level overrides
+    │           └── extensions.txt                         <- project-specific extensions
+    └── 3_shell/                                           <- shell config module
+        ├── 0_setup.sh                                     <- prerequisites
+        ├── 1_save.sh                                      <- snapshot shell config
+        ├── 2_wipe.sh                                      <- clean uninstall
+        ├── 3_deploy.sh                                    <- full install
+        ├── 4_test.sh                                      <- validate
+        └── config/                                        <- shell config files
+
+---
+
+## Projects
+
+### p008-arcane-predictive
+
+MTG trading company (Arcane Predictive). Python/data stack. See 2_vscode/projects/p008-arcane-predictive/ for workspace settings and extensions.
