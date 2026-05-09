@@ -23,6 +23,7 @@ Standards, conventions, and decisions for this repo. Follow these when adding or
 - **Readable over clever** — code should be easy to understand for someone reading it for the first time. Prioritize clarity.
 - **Modular and self-contained** — each module must be able to run independently without depending on other modules.
 - **Standardization is the path to perfection** — every module must follow the same formula. No exceptions.
+- **Always take the high road when the cost is low** — if a better solution exists and the effort to implement it is small, use it. Do not leave known improvements on the table.
 
 ---
 
