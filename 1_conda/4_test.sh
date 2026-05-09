@@ -5,9 +5,10 @@
 #   ./4_test.sh
 #
 # What it does:
-#   - Verifies Miniconda is installed at $HOME/miniconda3
+#   - Verifies Miniforge is installed at $HOME/miniforge3
 #   - Verifies conda command is accessible
 #   - Verifies Python is accessible via conda
+#   - Verifies conda-forge is the only channel (no Anaconda defaults)
 #   - Verifies all expected environments exist (from environments/*.yml)
 #   - Reports pass/fail for each check with a final summary
 #
@@ -18,7 +19,7 @@
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENVIRONMENTS_DIR="$REPO_DIR/environments"
-MINICONDA_DIR="$HOME/miniconda3"
+MINIFORGE_DIR="$HOME/miniforge3"
 PASS=0
 FAIL=0
 
@@ -34,25 +35,25 @@ fail() {
     FAIL=$((FAIL + 1))
 }
 
-# 1. Check Miniconda directory exists
+# 1. Check Miniforge directory exists
 echo ''
-echo '[1/4] Checking Miniconda installation...'
+echo '[1/5] Checking Miniforge installation...'
 
-if [[ -d "$MINICONDA_DIR" ]]; then
-    pass "Miniconda directory exists at $MINICONDA_DIR"
+if [[ -d "$MINIFORGE_DIR" ]]; then
+    pass "Miniforge directory exists at $MINIFORGE_DIR"
 else
-    fail "Miniconda directory not found at $MINICONDA_DIR - run 3_deploy.sh"
+    fail "Miniforge directory not found at $MINIFORGE_DIR - run 3_deploy.sh"
 fi
 
 # 2. Check conda command is accessible
 echo ''
-echo '[2/4] Checking conda command...'
+echo '[2/5] Checking conda command...'
 
 if command -v conda &> /dev/null; then
     CONDA_VER=$(conda --version)
     pass "conda is accessible: $CONDA_VER"
 else
-    if [[ -f "$MINICONDA_DIR/bin/conda" ]]; then
+    if [[ -f "$MINIFORGE_DIR/bin/conda" ]]; then
         pass 'conda binary exists - run source ~/.bashrc to activate in current shell'
     else
         fail 'conda command not found - run 3_deploy.sh'
@@ -61,20 +62,35 @@ fi
 
 # 3. Check Python is accessible via conda
 echo ''
-echo '[3/4] Checking Python...'
+echo '[3/5] Checking Python...'
 
-PYTHON_PATH="$MINICONDA_DIR/bin/python"
+PYTHON_PATH="$MINIFORGE_DIR/bin/python"
 
 if [[ -f "$PYTHON_PATH" ]]; then
     PYTHON_VER=$("$PYTHON_PATH" --version)
     pass "Python is accessible: $PYTHON_VER"
 else
-    fail 'Python not found in Miniconda - run 3_deploy.sh'
+    fail 'Python not found in Miniforge - run 3_deploy.sh'
 fi
 
-# 4. Check all expected environments exist
+# 4. Verify conda-forge is the only channel
 echo ''
-echo '[4/4] Checking environments...'
+echo '[4/5] Checking channel configuration...'
+
+if command -v conda &> /dev/null; then
+    CHANNELS=$(conda config --show channels 2>/dev/null)
+    if echo "$CHANNELS" | grep -q 'defaults'; then    # fail if Anaconda defaults is present
+        fail 'Anaconda defaults channel detected - run 3_deploy.sh to reinstall with Miniforge'
+    else
+        pass 'conda-forge is the only channel - no Anaconda defaults'
+    fi
+else
+    echo '      Skipping channel check - conda not accessible'
+fi
+
+# 5. Check all expected environments exist
+echo ''
+echo '[5/5] Checking environments...'
 
 YML_COUNT=$(ls "$ENVIRONMENTS_DIR"/*.yml 2>/dev/null | wc -l)
 

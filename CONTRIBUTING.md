@@ -218,6 +218,13 @@ Decisions are grouped by category. Add new decisions to the relevant category.
 | Single quotes for static echo statements | Avoids backslash escaping; easier to read and maintain |
 | WSL over Git Bash | WSL is a real Linux environment; scripts are portable to Linux servers and CI pipelines |
 
+### Conda
+
+| Decision | Reason |
+|---|---|
+| conda-forge as default channel over Anaconda defaults | No vendor TOS or commercial licensing restrictions, larger package selection, faster updates, industry standard for data science and engineering teams |
+| Named environments per project over base environment | Clean dependency separation, industry standard, prevents package conflicts across projects |
+
 ### VS Code extensions
 
 | Decision | Reason |

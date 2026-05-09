@@ -6,7 +6,8 @@
 #
 # What it does:
 #   - Removes all named conda environments
-#   - Uninstalls Miniconda from $HOME/miniconda3
+#   - Uninstalls Miniforge from $HOME/miniforge3
+#   - Also removes Miniconda from $HOME/miniconda3 if present
 #   - Removes conda init lines from ~/.bashrc
 #
 # WARNING: This is destructive. Run 1_save.sh first to export your environments.
@@ -14,11 +15,12 @@
 
 set -e  # exit immediately if any command fails
 
-MINICONDA_DIR="$HOME/miniconda3"    # standard Miniconda install location
+MINIFORGE_DIR="$HOME/miniforge3"    # standard Miniforge install location
+MINICONDA_DIR="$HOME/miniconda3"    # Miniconda location - removed if present
 
 echo '=== Conda Wipe ==='
 echo ''
-echo 'WARNING: This will remove all conda environments and Miniconda.'
+echo 'WARNING: This will remove all conda environments and Miniforge.'
 echo 'Run 1_save.sh first if you have unsaved environments.'
 echo ''
 
@@ -30,14 +32,10 @@ if [[ "$CONFIRM" != 'yes' ]]; then    # require exact 'yes' to proceed
     exit 0
 fi
 
-# Check conda is available
-if ! command -v conda &> /dev/null; then    # check if conda exists in PATH
-    echo ''
-    echo 'conda not found in PATH - checking for Miniconda directory...'
-    if [[ ! -d "$MINICONDA_DIR" ]]; then    # check if install directory exists
-        echo 'Miniconda directory not found - already clean.'
-        exit 0
-    fi
+# Check if anything to wipe
+if ! command -v conda &> /dev/null && [[ ! -d "$MINIFORGE_DIR" ]] && [[ ! -d "$MINICONDA_DIR" ]]; then
+    echo 'No conda installation found - already clean.'
+    exit 0
 fi
 
 # 1. Remove all named environments
@@ -56,34 +54,35 @@ if command -v conda &> /dev/null; then    # only if conda is accessible
             conda env remove -n "$env" --yes 2>/dev/null    # remove environment without prompting
         done <<< "$ENVS"
     fi
+
+    conda clean --all --yes 2>/dev/null    # remove all cached packages and tarballs
 fi
 
 echo '      Environments removed.'
 
-# 2. Run conda clean to remove cached packages
+# 2. Remove installation directories
 echo ''
-echo '[2/3] Cleaning conda package cache...'
+echo '[2/3] Removing conda installation...'
 
-if command -v conda &> /dev/null; then
-    conda clean --all --yes 2>/dev/null    # remove all cached packages and tarballs
+if [[ -d "$MINIFORGE_DIR" ]]; then
+    rm -rf "$MINIFORGE_DIR"    # remove the entire Miniforge directory
+    echo '      Miniforge directory removed.'
 fi
 
-echo '      Cache cleared.'
-
-# 3. Remove Miniconda directory and clean .bashrc
-echo ''
-echo '[3/3] Removing Miniconda installation...'
-
 if [[ -d "$MINICONDA_DIR" ]]; then
-    rm -rf "$MINICONDA_DIR"    # remove the entire Miniconda directory
+    rm -rf "$MINICONDA_DIR"    # remove Miniconda if present
     echo '      Miniconda directory removed.'
 fi
 
-# Remove conda init block from .bashrc
+# 3. Remove conda init block from .bashrc
+echo ''
+echo '[3/3] Cleaning shell config...'
+
 if grep -q 'conda initialize' "$HOME/.bashrc"; then    # check if conda init block exists
-    # Remove the conda initialize block - everything between the two comment markers
-    sed -i '/# >>> conda initialize >>>/,/# <<< conda initialize <<</d' "$HOME/.bashrc"
+    sed -i '/# >>> conda initialize >>>/,/# <<< conda initialize <<</d' "$HOME/.bashrc"    # remove the block
     echo '      Removed conda init block from ~/.bashrc.'
+else
+    echo '      No conda init block found in ~/.bashrc.'
 fi
 
 echo ''
