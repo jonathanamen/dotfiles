@@ -3,7 +3,7 @@
     "editor.tabSize": 4,
     "editor.formatOnSave": true,
     "editor.minimap.enabled": false,
-    "workbench.colorTheme": "Dark Modern",
+    "workbench.colorTheme": "Default High Contrast",
     "files.autoSave": "onFocusChange",
     "terminal.integrated.defaultProfile.linux": "bash"
 }
