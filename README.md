@@ -1,8 +1,8 @@
 # dotfiles
 
-Dev environment management repo. Follow this runbook top to bottom on any fresh Windows 11 machine and you'll end up fully set up — WSL, Git, conda, VS Code, and all project configs deployed.
+Dev environment management repo. Follow this runbook top to bottom on any fresh Windows 11 machine and you will end up fully set up — WSL, Git, conda, VS Code, and all project configs deployed.
 
-Written to be readable, not just runnable. Each command has an explanation so you understand what you're doing and why.
+Written to be readable, not just runnable. Each command has an explanation so you understand what you are doing and why.
 
 ---
 
@@ -19,6 +19,7 @@ Written to be readable, not just runnable. Each command has an explanation so yo
 8. [Verify everything works](#8-verify-everything-works)
 9. [Ongoing workflow](#9-ongoing-workflow)
 10. [System test](#10-system-test)
+11. [Nuclear rebuild](#11-nuclear-rebuild)
 
 ---
 
@@ -187,10 +188,10 @@ You should see: Hi username! You have successfully authenticated...
 
 ## 5. Clone this repo
 
-    cd ~                                                    # go to home directory
-    mkdir repos && cd repos                                 # create repos folder
-    git clone git@github.com:YOUR_USERNAME/dotfiles.git    # clone from GitHub
-    cd dotfiles                                             # move into repo
+    cd ~
+    mkdir repos && cd repos
+    git clone git@github.com:jonathanamen/dotfiles.git
+    cd dotfiles
 
 ~ is shorthand for your home directory (/home/yourusername). All your work should live here inside WSL, not in /mnt/c/. WSL can access Windows files but performance is better working natively in the Linux filesystem.
 
@@ -223,9 +224,7 @@ This is the setup. Your editor is Windows (familiar UI, good performance), your 
 
 Make all scripts executable first (only needed once after cloning):
 
-    chmod +x 1_conda/1_save.sh 1_conda/3_deploy.sh
-    chmod +x 2_vscode/1_save.sh 2_vscode/3_deploy.sh
-    chmod +x 3_shell/1_save.sh 3_shell/3_deploy.sh
+    chmod +x bootstrap.sh 1_conda/*.sh 2_vscode/*.sh 3_shell/*.sh
 
 Run the full bootstrap to deploy everything in the correct order:
 
@@ -237,18 +236,19 @@ Or deploy individual modules:
     cd 2_vscode && ./3_deploy.sh p008-arcane-predictive    # VS Code only
     cd 3_shell && ./3_deploy.sh                            # shell config only
 
-chmod +x marks a file as executable. Without it, bash will not run it as a script. ./ means "run this file from the current directory."
+Open a new terminal or restart VS Code after bootstrap completes.
 
 ---
 
 ## 8. Verify everything works
 
-    git config --list       # git is configured
-    git status              # repo is clean
-    code .                  # VS Code opens from WSL
-    echo $SHELL             # confirms bash is your shell
+Run each module test:
 
-In VS Code, open a new terminal (Ctrl+backtick). It should open a bash terminal inside WSL, not PowerShell.
+    cd ~/repos/dotfiles/1_conda && ./4_test.sh
+    cd ~/repos/dotfiles/2_vscode && ./4_test.sh
+    cd ~/repos/dotfiles/3_shell && ./4_test.sh
+
+All tests should pass. If any fail, the error message tells you exactly which script to run to fix it.
 
 ---
 
@@ -267,10 +267,10 @@ Whenever you change settings or install new extensions, snapshot them:
 
 ### Deploying to a new machine
 
-    git clone git@github.com:YOUR_USERNAME/dotfiles.git ~/repos/dotfiles
+    git clone git@github.com:jonathanamen/dotfiles.git ~/repos/dotfiles
     cd ~/repos/dotfiles
-    chmod +x 2_vscode/1_save.sh 2_vscode/3_deploy.sh
-    ./2_vscode/3_deploy.sh p008-arcane-predictive
+    chmod +x bootstrap.sh 1_conda/*.sh 2_vscode/*.sh 3_shell/*.sh
+    ./bootstrap.sh
 
 ### Adding a new project
 
@@ -292,16 +292,15 @@ Run this to verify the full deploy pipeline works end to end. Do this after any 
 ### Full system test
 
     mv ~/repos/dotfiles ~/repos/dotfiles.bak               # rename current folder as backup
-    git clone git@github.com:YOUR_USERNAME/dotfiles.git ~/repos/dotfiles  # clone fresh
+    git clone git@github.com:jonathanamen/dotfiles.git ~/repos/dotfiles  # clone fresh
     cd ~/repos/dotfiles                                     # move into fresh clone
-    chmod +x 2_vscode/1_save.sh 2_vscode/3_deploy.sh       # make scripts executable
-    ./2_vscode/3_deploy.sh p008-arcane-predictive           # run deploy
+    chmod +x bootstrap.sh 1_conda/*.sh 2_vscode/*.sh 3_shell/*.sh
+    ./bootstrap.sh                                          # run full bootstrap
 
-    # Verify in VS Code:
-    # - Extensions panel shows all 18 extensions
-    # - Terminal opens bash not PowerShell
-    # - Bottom left shows WSL: Ubuntu
-    # - Color theme is Dark Modern
+    # Verify each module:
+    cd ~/repos/dotfiles/1_conda && ./4_test.sh
+    cd ~/repos/dotfiles/2_vscode && ./4_test.sh
+    cd ~/repos/dotfiles/3_shell && ./4_test.sh
 
     rm -rf ~/repos/dotfiles.bak                            # clean up backup if test passed
     # mv ~/repos/dotfiles.bak ~/repos/dotfiles             # restore backup if test failed
@@ -309,10 +308,89 @@ Run this to verify the full deploy pipeline works end to end. Do this after any 
 ### Smoke test (quick check without full redeploy)
 
     cd ~/repos/dotfiles
-    git status                                             # repo is clean
-    git log --oneline -5                                   # recent commits look correct
-    diff 2_vscode/global/extensions.txt <(code --list-extensions | sort | grep -v '^Extensions')  # curated list matches installed
-    ls -la 2_vscode/*.sh                                   # scripts are executable
+    git status
+    git log --oneline -5
+    diff 2_vscode/global/extensions.txt <(code --list-extensions | sort | grep -v '^Extensions')
+    ls -la 2_vscode/*.sh
+
+---
+
+## 11. Nuclear rebuild
+
+Follow this section when you want to wipe everything and start from scratch. This is the full procedure — Windows, WSL, VS Code, and all dev tools — rebuilt from zero.
+
+### Phase 1 — Windows cleanup (manual)
+
+1. Uninstall VS Code: Settings → Apps → Installed Apps → search "Visual Studio Code" → Uninstall
+2. Delete C:\Users\thene\AppData\Roaming\Code
+3. Delete C:\Users\thene\.vscode
+4. Uninstall Ubuntu WSL — open PowerShell as Administrator and run:
+
+    wsl --unregister Ubuntu
+
+5. Restart Windows
+
+### Phase 2 — Reinstall WSL and VS Code (manual)
+
+6. Open PowerShell as Administrator and run:
+
+    wsl --install -d Ubuntu
+
+7. Restart Windows when prompted
+8. Ubuntu will open automatically — create your username and password
+9. Download and install VS Code from code.visualstudio.com — check "Add to PATH"
+10. Open VS Code, install the WSL extension: Extensions (Ctrl+Shift+X) → search "WSL" → install
+
+### Phase 3 — Configure WSL (manual, one-time)
+
+11. Open Ubuntu from the Start menu and run:
+
+    sudo apt update && sudo apt upgrade -y
+    sudo apt install -y curl wget git build-essential
+
+12. Configure git identity:
+
+    git config --global user.name "Your Name"
+    git config --global user.email "you@example.com"
+    git config --global init.defaultBranch main
+
+13. Generate SSH key and add to GitHub (see step 4 for full details):
+
+    ssh-keygen -t ed25519 -C "you@example.com"
+    cat ~/.ssh/id_ed25519.pub
+
+    Copy the output and add it to GitHub → Settings → SSH and GPG keys → New SSH key
+
+### Phase 4 — Clone and bootstrap (automated)
+
+14. Clone this repo:
+
+    cd ~
+    mkdir repos && cd repos
+    git clone git@github.com:jonathanamen/dotfiles.git
+    cd dotfiles
+
+15. Make scripts executable:
+
+    chmod +x bootstrap.sh 1_conda/*.sh 2_vscode/*.sh 3_shell/*.sh
+
+16. Run bootstrap:
+
+    ./bootstrap.sh
+
+17. Open a new terminal or restart VS Code, then run:
+
+    source ~/.bashrc
+
+### Phase 5 — Verify
+
+18. Run each module test:
+
+    cd ~/repos/dotfiles/1_conda && ./4_test.sh
+    cd ~/repos/dotfiles/2_vscode && ./4_test.sh
+    cd ~/repos/dotfiles/3_shell && ./4_test.sh
+
+All tests should pass. If any fail, check the error message — each failure tells you exactly which script to run to fix it.
 
 ---
 
