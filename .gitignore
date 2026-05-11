@@ -1,0 +1,17 @@
+# Personal config - never commit
+config.env
+
+# Shell backup files created by 3_shell/0_setup.sh and 2_wipe.sh
+.bashrc.bak.*
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# VS Code local settings
+.vscode/
+
+# conda/miniforge installer if accidentally left behind
+miniforge_installer.sh
+miniconda_installer.sh
