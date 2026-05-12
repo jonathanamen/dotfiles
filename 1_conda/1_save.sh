@@ -47,7 +47,7 @@ fi
 echo ''
 echo '=== Save complete. Review and commit your changes: ==='
 echo ''
-echo '    git diff'
+echo '    git status'
 echo '    git add -A'
 echo "    git commit -m 'chore: snapshot conda environments'"
 echo '    git push'

@@ -27,7 +27,7 @@ echo '      Saved config/.bashrc.'
 echo ''
 echo '=== Save complete. Review and commit your changes: ==='
 echo ''
-echo '    git diff'
+echo '    git status'
 echo '    git add -A'
 echo "    git commit -m 'chore: snapshot shell config'"
 echo '    git push'
