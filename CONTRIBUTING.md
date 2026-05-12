@@ -202,6 +202,7 @@ Decisions are grouped by category. Add new decisions to the relevant category.
 | Each module has all 5 scripts | Standardization ensures every module is fully manageable independently |
 | conda before vscode in bootstrap order | Python must exist before VS Code extensions can function |
 | Modules must be independently runnable | Allows surgical wipe/redeploy of a single module without full bootstrap |
+| bootstrap wipes before deploying | Guarantees clean state every run; updates are always applied |
 
 ### Naming and structure
 
@@ -217,13 +218,22 @@ Decisions are grouped by category. Add new decisions to the relevant category.
 |---|---|
 | Single quotes for static echo statements | Avoids backslash escaping; easier to read and maintain |
 | WSL over Git Bash | WSL is a real Linux environment; scripts are portable to Linux servers and CI pipelines |
+| git status over git diff in save script suggestions | git diff only shows changes to tracked files; new files on first run only appear in git status |
 
 ### Conda
 
 | Decision | Reason |
 |---|---|
-| conda-forge as default channel over Anaconda defaults | No vendor TOS or commercial licensing restrictions, larger package selection, faster updates, industry standard for data science and engineering teams |
+| Miniforge over Miniconda | Miniforge ships with conda-forge pre-configured; Miniconda hard-codes Anaconda defaults that are difficult to remove |
+| conda-forge as default channel | No vendor TOS or commercial licensing restrictions, larger package selection, faster updates, industry standard |
 | Named environments per project over base environment | Clean dependency separation, industry standard, prevents package conflicts across projects |
+
+### Shell
+
+| Decision | Reason |
+|---|---|
+| Keep only 1 local .bashrc backup | Git holds full history; local backup is only a safety net for the current run. Older backups are redundant. |
+| Backup rotation in 0_setup.sh and 2_wipe.sh only | These are the only scripts that modify ~/.bashrc directly; save scripts write to the repo not the live file |
 
 ### VS Code extensions
 

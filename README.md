@@ -285,9 +285,11 @@ If any validation fails, it tells you exactly what to fix and exits without maki
 
 What bootstrap does, in order:
 
-1. conda module — downloads and installs Miniforge, configures conda-forge as the only channel, no Anaconda licensing issues
-2. vscode module — installs all extensions from extensions.txt, deploys settings.json and keybindings.json, applies your project workspace config
-3. shell module — deploys aliases and environment variables to ~/.bashrc
+1. Wipes all modules in reverse dependency order (shell, vscode, conda)
+2. Deploys all modules in dependency order (conda, vscode, shell)
+3. Runs all module tests and reports pass/fail
+
+Wiping before deploying guarantees a clean state every time. Updates to any module config are always applied on the next bootstrap run.
 
 After bootstrap completes, open a new terminal or restart VS Code, then run:
 
@@ -299,7 +301,7 @@ After bootstrap completes, open a new terminal or restart VS Code, then run:
 
 ### What this does
 
-Runs each module's test script to confirm the full environment deployed correctly. Each test is non-destructive — it only checks state and reports pass/fail.
+Runs each module's test script to confirm the full environment deployed correctly. Each test is non-destructive — it only checks state and reports pass/fail. Bootstrap runs these automatically but you can run them individually at any time.
 
     cd ~/repos/dotfiles/1_conda && ./4_test.sh
     cd ~/repos/dotfiles/2_vscode && ./4_test.sh
@@ -323,7 +325,7 @@ Whenever you change settings or install new extensions, snapshot and commit:
 
     cd ~/repos/dotfiles
     ./2_vscode/1_save.sh
-    git diff
+    git status
     git add -A
     git commit -m "chore: snapshot vscode env $(date +%Y-%m-%d)"
     git push
@@ -334,7 +336,7 @@ Whenever you update ~/.bashrc outside of the deploy script:
 
     cd ~/repos/dotfiles
     ./3_shell/1_save.sh
-    git diff
+    git status
     git add -A
     git commit -m "chore: snapshot shell config $(date +%Y-%m-%d)"
     git push
@@ -388,11 +390,6 @@ Verifies the full deploy pipeline works end to end by cloning a fresh copy and r
     nano config.env                                         # fill in your values
     ./0_personalize.sh
     ./bootstrap.sh
-
-    # Verify each module
-    cd ~/repos/dotfiles/1_conda && ./4_test.sh
-    cd ~/repos/dotfiles/2_vscode && ./4_test.sh
-    cd ~/repos/dotfiles/3_shell && ./4_test.sh
 
     rm -rf ~/repos/dotfiles.bak                            # clean up if test passed
     # mv ~/repos/dotfiles.bak ~/repos/dotfiles             # restore if test failed
@@ -481,7 +478,7 @@ From this point forward everything is handled by the repo.
 
     ./0_personalize.sh
 
-17. Run bootstrap — installs conda, VS Code extensions, and shell config in the correct order:
+17. Run bootstrap — wipes, deploys, and tests all modules in the correct order:
 
     ./bootstrap.sh
 
@@ -510,7 +507,7 @@ All tests should pass. If any fail, check the error message — each failure tel
     ├── config.env                                         <- your personal config (gitignored, never committed)
     ├── .gitignore                                         <- excludes config.env and other personal files
     ├── 0_personalize.sh                                   <- validates config.env and applies personal settings
-    ├── bootstrap.sh                                       <- deploys all modules in dependency order
+    ├── bootstrap.sh                                       <- wipes, deploys, and tests all modules in order
     ├── 1_conda/                                           <- Python environment module
     │   ├── 0_setup.sh                                     <- prerequisites check
     │   ├── 1_save.sh                                      <- snapshot environments to repo
@@ -535,12 +532,13 @@ All tests should pass. If any fail, check the error message — each failure tel
     │           ├── settings.json                          <- workspace-level settings overrides
     │           └── extensions.txt                         <- project-specific extensions
     └── 3_shell/                                           <- shell config module
-        ├── 0_setup.sh                                     <- prerequisites check
+        ├── 0_setup.sh                                     <- prerequisites check, backs up ~/.bashrc with rotation
         ├── 1_save.sh                                      <- snapshot shell config to repo
-        ├── 2_wipe.sh                                      <- remove dotfiles block from ~/.bashrc
+        ├── 2_wipe.sh                                      <- remove dotfiles block from ~/.bashrc, backs up with rotation
         ├── 3_deploy.sh                                    <- deploy aliases and env vars to ~/.bashrc
         ├── 4_test.sh                                      <- validate shell config state
-        └── config/                                        <- shell config files
+        └── config/
+            └── .bashrc                                    <- saved shell config snapshot
 
 ---
 
