@@ -8,6 +8,11 @@
 #   - Verifies bash is the default shell
 #   - Verifies ~/.bashrc exists
 #   - Backs up existing ~/.bashrc before any changes
+#   - Keeps only the most recent backup (older ones are deleted)
+#
+# Why keep only 1 local backup:
+#   Git holds the full history of all committed states. The local backup
+#   is only a safety net for the current run. Older backups are redundant.
 
 set -e  # exit immediately if any command fails
 
@@ -35,13 +40,18 @@ fi
 
 echo '      ~/.bashrc exists - OK.'
 
-# 3. Back up existing ~/.bashrc
+# 3. Back up existing ~/.bashrc and rotate old backups
 echo ''
 echo '[3/3] Backing up ~/.bashrc...'
 
 BACKUP="$HOME/.bashrc.bak.$(date +%Y%m%d%H%M%S)"    # timestamped backup filename
 cp "$HOME/.bashrc" "$BACKUP"                           # copy current .bashrc to backup
 echo "      Backed up to: $BACKUP"
+
+# Keep only the most recent backup - delete all older ones
+# ls -t sorts by newest first, tail -n +2 skips the first (newest) and outputs the rest
+ls -t "$HOME"/.bashrc.bak.* 2>/dev/null | tail -n +2 | xargs rm -f 2>/dev/null || true
+echo '      Old backups removed - keeping most recent only.'
 
 echo ''
 echo '=== Setup complete. You are ready to run 3_deploy.sh ==='

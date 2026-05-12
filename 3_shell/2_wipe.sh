@@ -8,6 +8,11 @@
 #   - Removes the shell config block managed by this repo from ~/.bashrc
 #   - Does NOT remove conda init or other blocks managed by other tools
 #   - Creates a backup of ~/.bashrc before making any changes
+#   - Keeps only the most recent backup (older ones are deleted)
+#
+# Why keep only 1 local backup:
+#   Git holds the full history of all committed states. The local backup
+#   is only a safety net for the current run. Older backups are redundant.
 #
 # WARNING: Run 1_save.sh first to snapshot your current state.
 
@@ -39,6 +44,11 @@ fi
 BACKUP="$HOME/.bashrc.bak.$(date +%Y%m%d%H%M%S)"    # timestamped backup filename
 cp "$HOME/.bashrc" "$BACKUP"                           # copy current .bashrc to backup
 echo "Backed up ~/.bashrc to: $BACKUP"
+
+# Keep only the most recent backup - delete all older ones
+# ls -t sorts by newest first, tail -n +2 skips the first (newest) and outputs the rest
+ls -t "$HOME"/.bashrc.bak.* 2>/dev/null | tail -n +2 | xargs rm -f 2>/dev/null || true
+echo 'Old backups removed - keeping most recent only.'
 
 # Remove the managed block
 sed -i "/# >>> dotfiles shell config >>>/,/# <<< dotfiles shell config <<</d" "$HOME/.bashrc"    # remove block
