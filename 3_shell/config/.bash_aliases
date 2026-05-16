@@ -11,3 +11,5 @@ alias fitness="cd $GITHUB/Project-FitnessTracker"
 alias databricks="cd $GITHUB/databricks"
 alias template="cd $GITHUB/repo-template"
 alias dotfiles="cd $GITHUB/dotfiles"
+
+export TDBI_MEMORY_TOKEN="paste-key-inside-quotes-wrapper"
