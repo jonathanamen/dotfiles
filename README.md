@@ -9,15 +9,16 @@ Written to be readable, not just runnable. Each command has an explanation so yo
 1. Wipe and reinstall VS Code
 2. Prerequisites
 3. Install VS Code
-4. Install WSL
-5. Configure your Linux environment
-6. Install and configure Git
-7. Clone this repo
-8. Personalize and deploy
-9. Verify everything works
-10. Ongoing workflow
-11. System test
-12. Nuclear rebuild
+4. Install Git for Windows
+5. Install WSL
+6. Configure your Linux environment
+7. Install and configure Git (WSL)
+8. Clone this repo
+9. Personalize and deploy
+10. Verify everything works
+11. Ongoing workflow
+12. System test
+13. Nuclear rebuild
 
 ---
 
@@ -60,7 +61,7 @@ Follow step 2 below.
 
 Before starting, make sure you have:
 
-- Windows 11 (any edition)
+- Windows 10 or Windows 11 (any edition)
 - Administrator access on your machine
 - An internet connection
 - A GitHub account
@@ -78,7 +79,29 @@ Install VS Code on Windows before WSL. The deploy scripts require VS Code to be 
 
 ---
 
-## 3. Install WSL
+## 3. Install Git for Windows
+
+Git for Windows installs a native git binary on the Windows side, which is required for VS Code's Source Control panel to work. This is separate from the git you use inside WSL.
+
+1. Download from git-scm.com
+2. Run the installer — safe to install over an existing Git Desktop installation
+3. Accept all defaults
+4. When prompted with "Adjusting your PATH environment", select "Git from the command line and also from 3rd-party software" (the default)
+5. Complete the install and open a new PowerShell window
+
+Verify:
+
+```powershell
+git --version
+```
+
+Expected output: `git version 2.x.x.windows.x`
+
+Note: you must open a new terminal after install for PATH changes to take effect. Restart VS Code after install to connect Source Control.
+
+---
+
+## 4. Install WSL
 
 ### What is WSL and why do we use it
 
