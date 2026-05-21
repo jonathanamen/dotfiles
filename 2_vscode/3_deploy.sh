@@ -87,5 +87,20 @@ else
     echo "      Workspace settings are in: $PROJECT_DIR/settings.json"
 fi
 
+# ── 4. Claude Code global settings ───────────────────────────────────────────
+echo ''
+echo '[4/4] Deploying Claude Code global settings...'
+
+CLAUDE_SETTINGS_SRC="$REPO_DIR/claude/settings.json"
+CLAUDE_SETTINGS_DEST="$HOME/.claude/settings.json"
+
+if [[ -f "$CLAUDE_SETTINGS_SRC" ]]; then
+    mkdir -p "$HOME/.claude"
+    cp "$CLAUDE_SETTINGS_SRC" "$CLAUDE_SETTINGS_DEST"
+    echo '      Deployed claude/settings.json to ~/.claude/settings.json.'
+else
+    echo '      claude/settings.json not found in repo -- skipping.'
+fi
+
 echo ''
 echo '=== Deploy complete. Restart VS Code to apply all settings. ==='
