@@ -455,14 +455,19 @@ dotfiles/
 │   │   └── extensions.md
 │   └── projects/
 │       └── p008-arcane-predictive/
-└── 3_shell/                      <- shell config module
+├── 3_shell/                      <- shell config module
+│   ├── 0_setup.sh
+│   ├── 1_save.sh
+│   ├── 2_wipe.sh
+│   ├── 3_deploy.sh
+│   ├── 4_test.sh
+│   └── config/
+│       └── .bashrc
+└── 4_node/                       <- Node.js and Claude Code module
     ├── 0_setup.sh
-    ├── 1_save.sh
-    ├── 2_wipe.sh
+    ├── 2_wipe.sh                 <- no 1_save.sh: node state is fixed (always Node + Claude Code), nothing to capture
     ├── 3_deploy.sh
-    ├── 4_test.sh
-    └── config/
-        └── .bashrc
+    └── 4_test.sh
 ```
 
 ---
