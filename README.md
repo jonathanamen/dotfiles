@@ -1,6 +1,6 @@
 # dotfiles
 
-Dev environment management repo. Follow this runbook top to bottom on any fresh Windows 11 machine and you will end up fully set up — WSL, Git, conda, VS Code, and all project configs deployed.
+Dev environment management repo. Follow this runbook top to bottom on any fresh Windows 11 machine and you will end up fully set up — WSL, Git, conda, VS Code, Claude Code, and all project configs deployed.
 
 Written to be readable, not just runnable. Each command has an explanation so you understand what you are doing and why. Every step tells you what it does, why it matters, and what to expect.
 
@@ -12,13 +12,14 @@ Written to be readable, not just runnable. Each command has an explanation so yo
 4. Install Git for Windows
 5. Install WSL
 6. Configure your Linux environment
-7. Install and configure Git (WSL)
-8. Clone this repo
-9. Personalize and deploy
-10. Verify everything works
-11. Ongoing workflow
-12. System test
-13. Nuclear rebuild
+7. Install Node.js and Claude Code
+8. Install and configure Git (WSL)
+9. Clone this repo
+10. Personalize and deploy
+11. Verify everything works
+12. Ongoing workflow
+13. System test
+14. Nuclear rebuild
 
 ---
 
@@ -145,7 +146,7 @@ echo $SHELL            # should output /bin/bash
 
 ---
 
-## 4. Configure your Linux environment
+## 5. Configure your Linux environment
 
 ### Update the package manager
 
@@ -162,7 +163,45 @@ bash --version    # should show bash 5.x
 
 ---
 
-## 5. Install and configure Git
+## 6. Install Node.js and Claude Code
+
+Node.js is required for Claude Code, Anthropic's agentic coding CLI. Install via npm using sudo to avoid permission errors.
+
+```bash
+sudo apt install nodejs npm
+sudo npm install -g @anthropic-ai/claude-code
+```
+
+Verify:
+
+```bash
+node --version     # should show v18.x or higher
+npm --version
+claude --version   # should show 2.x.x (Claude Code)
+```
+
+### Launch Claude Code
+
+Claude Code launches from inside any repo directory:
+
+```bash
+cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/YOUR_REPO
+claude
+```
+
+### VS Code extension
+
+The VS Code extension is recommended over the terminal interface. It puts Claude Code in a sidebar panel directly inside VS Code — code on the left, Claude on the right, terminal at the bottom.
+
+Install from the Extensions panel (Ctrl+Shift+X), search "Claude Code", install the extension published by Anthropic. It picks up your existing auth automatically.
+
+### CLAUDE.md
+
+Claude Code reads `CLAUDE.md` at repo root on every session start. Seed this file with allowed paths, project context, agent inventory, naming conventions, and working standards. This eliminates per-session permission prompts and gives Claude Code standing context without re-explaining every time.
+
+---
+
+## 7. Install and configure Git
 
 ### Set your identity
 
@@ -198,7 +237,7 @@ Expected output: `Hi username! You've successfully authenticated...`
 
 ---
 
-## 6. Clone this repo
+## 8. Clone this repo
 
 Repos live on the Windows filesystem for cross-tool compatibility. Do not clone into the WSL home directory.
 
@@ -216,7 +255,7 @@ ls /mnt/c/Users/
 
 ---
 
-## 7. Connect VS Code to WSL
+## 9. Connect VS Code to WSL
 
 From your WSL terminal inside the dotfiles folder:
 
@@ -228,7 +267,7 @@ The first time you run this, VS Code installs a small server component inside WS
 
 ---
 
-## 8. Personalize and deploy
+## 10. Personalize and deploy
 
 ### Step 1 — Fill in config.env
 
@@ -270,7 +309,7 @@ Then restart VS Code to apply all settings.
 
 ---
 
-## 9. Verify everything works
+## 11. Verify everything works
 
 ```bash
 cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles/1_conda && ./4_test.sh
@@ -282,7 +321,7 @@ All tests should pass. If any fail, the error message tells you exactly which sc
 
 ---
 
-## 10. Ongoing workflow
+## 12. Ongoing workflow
 
 ### Saving your VS Code state
 
@@ -345,7 +384,7 @@ cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles/3_shell && ./2_w
 
 ---
 
-## 11. System test
+## 13. System test
 
 ```bash
 mv /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles.bak
@@ -363,7 +402,7 @@ rm -rf /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles.bak   # clea
 
 ---
 
-## 12. Nuclear rebuild
+## 14. Nuclear rebuild
 
 ### Phase 1 — Windows cleanup (manual)
 
