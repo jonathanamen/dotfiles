@@ -11,8 +11,8 @@
 #   - VS Code installed on Windows with WSL extension (see README.md step 6)
 #
 # What it does:
-#   1. Wipes all modules in reverse dependency order (shell, vscode, conda)
-#   2. Deploys all modules in dependency order (conda, vscode, shell)
+#   1. Wipes all modules in reverse dependency order (node, shell, vscode, conda)
+#   2. Deploys all modules in dependency order (conda, vscode, shell, node)
 #   3. Runs all module tests to verify the deployment
 #
 # Wiping before deploying guarantees a clean state every time.
@@ -22,6 +22,7 @@
 #   cd 1_conda && ./2_wipe.sh && ./3_deploy.sh && ./4_test.sh
 #   cd 2_vscode && ./2_wipe.sh && ./3_deploy.sh && ./4_test.sh
 #   cd 3_shell && ./2_wipe.sh && ./3_deploy.sh && ./4_test.sh
+#   cd 4_node && ./2_wipe.sh && ./3_deploy.sh && ./4_test.sh
 #
 # Do NOT run with sudo.
 
@@ -56,26 +57,31 @@ echo "Deploying for: $DOTFILES_USER_NAME <$DOTFILES_USER_EMAIL>"
 echo ''
 
 # ── Wipe all modules in reverse dependency order ──────────────────────────────
-# Reverse order: shell first (no dependents), then vscode, then conda last
+# Reverse order: node first (no dependents), then shell, then vscode, then conda last
 # This prevents dependency conflicts during uninstall
 echo '================================================'
 echo '  Phase 1: Wiping all modules'
 echo '================================================'
 echo ''
 
-echo '[ Wipe 1/3 ] Wiping shell module...'
+echo '[ Wipe 1/4 ] Wiping node module...'
+echo 'yes' | bash "$REPO_DIR/4_node/2_wipe.sh"     # pipe 'yes' to skip confirmation prompt
+echo '[ Wipe 1/4 ] Node module wiped.'
+echo ''
+
+echo '[ Wipe 2/4 ] Wiping shell module...'
 echo 'yes' | bash "$REPO_DIR/3_shell/2_wipe.sh"    # pipe 'yes' to skip confirmation prompt
-echo '[ Wipe 1/3 ] Shell module wiped.'
+echo '[ Wipe 2/4 ] Shell module wiped.'
 echo ''
 
-echo '[ Wipe 2/3 ] Wiping vscode module...'
+echo '[ Wipe 3/4 ] Wiping vscode module...'
 echo 'yes' | bash "$REPO_DIR/2_vscode/2_wipe.sh"   # pipe 'yes' to skip confirmation prompt
-echo '[ Wipe 2/3 ] VS Code module wiped.'
+echo '[ Wipe 3/4 ] VS Code module wiped.'
 echo ''
 
-echo '[ Wipe 3/3 ] Wiping conda module...'
+echo '[ Wipe 4/4 ] Wiping conda module...'
 echo 'yes' | bash "$REPO_DIR/1_conda/2_wipe.sh"    # pipe 'yes' to skip confirmation prompt
-echo '[ Wipe 3/3 ] Conda module wiped.'
+echo '[ Wipe 4/4 ] Conda module wiped.'
 echo ''
 
 # ── Deploy all modules in dependency order ────────────────────────────────────
@@ -84,34 +90,44 @@ echo '  Phase 2: Deploying all modules'
 echo '================================================'
 echo ''
 
-echo '[ Deploy 1/3 ] Running conda module setup and deploy...'
+echo '[ Deploy 1/4 ] Running conda module setup and deploy...'
 echo ''
 
 bash "$REPO_DIR/1_conda/0_setup.sh"    # run conda prerequisites
 bash "$REPO_DIR/1_conda/3_deploy.sh"   # install Miniforge and configure conda-forge
 
 echo ''
-echo '[ Deploy 1/3 ] Conda module complete.'
+echo '[ Deploy 1/4 ] Conda module complete.'
 echo ''
 
-echo '[ Deploy 2/3 ] Running vscode module setup and deploy...'
+echo '[ Deploy 2/4 ] Running vscode module setup and deploy...'
 echo ''
 
 bash "$REPO_DIR/2_vscode/0_setup.sh"                              # run vscode prerequisites
 bash "$REPO_DIR/2_vscode/3_deploy.sh" "$DOTFILES_FIRST_PROJECT"  # install extensions and settings
 
 echo ''
-echo '[ Deploy 2/3 ] VS Code module complete.'
+echo '[ Deploy 2/4 ] VS Code module complete.'
 echo ''
 
-echo '[ Deploy 3/3 ] Running shell module setup and deploy...'
+echo '[ Deploy 3/4 ] Running shell module setup and deploy...'
 echo ''
 
 bash "$REPO_DIR/3_shell/0_setup.sh"    # run shell prerequisites
 bash "$REPO_DIR/3_shell/3_deploy.sh"   # deploy shell config to ~/.bashrc
 
 echo ''
-echo '[ Deploy 3/3 ] Shell module complete.'
+echo '[ Deploy 3/4 ] Shell module complete.'
+echo ''
+
+echo '[ Deploy 4/4 ] Running node module setup and deploy...'
+echo ''
+
+bash "$REPO_DIR/4_node/0_setup.sh"    # run node prerequisites
+bash "$REPO_DIR/4_node/3_deploy.sh"   # install Node.js, npm, and Claude Code
+
+echo ''
+echo '[ Deploy 4/4 ] Node module complete.'
 echo ''
 
 # ── Run all module tests ──────────────────────────────────────────────────────
@@ -135,6 +151,10 @@ echo ''
 
 bash "$REPO_DIR/3_shell/4_test.sh"
 [[ $? -ne 0 ]] && TESTS_PASSED=false    # record failure if shell test fails
+echo ''
+
+bash "$REPO_DIR/4_node/4_test.sh"
+[[ $? -ne 0 ]] && TESTS_PASSED=false    # record failure if node test fails
 echo ''
 
 # ── Final summary ─────────────────────────────────────────────────────────────
