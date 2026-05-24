@@ -116,21 +116,6 @@ if ! shopt -oq posix; then
   fi
 fi
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
 __conda_setup="$('/home/ubuntu/miniforge3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
@@ -146,18 +131,14 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
-
 # >>> dotfiles shell config >>>
 # Managed by dotfiles/3_shell/3_deploy.sh - do not edit manually
 # Run 3_shell/2_wipe.sh to remove, 3_shell/3_deploy.sh to redeploy
-
 # ── Navigation ────────────────────────────────────────────────────────────────
 alias ..='cd ..'          # go up one directory
 alias ...='cd ../..'      # go up two directories
-
 # ── File listing ──────────────────────────────────────────────────────────────
 alias ll='ls -la'         # detailed listing with permissions, sizes, and dates
-
 # ── Git shortcuts ─────────────────────────────────────────────────────────────
 alias gs='git status'           # show working tree status
 alias ga='git add -A'           # stage all changes
@@ -165,11 +146,11 @@ alias gc='git commit -m'        # commit with message - usage: gc "message"
 alias gp='git push'             # push to remote
 alias gd='git diff'             # show unstaged changes
 alias gl='git log --oneline -10' # show last 10 commits in compact format
-
 # ── Environment ───────────────────────────────────────────────────────────────
 export EDITOR=nano              # default text editor
 export HISTSIZE=10000           # number of commands to keep in session history
 export HISTFILESIZE=20000       # number of commands to keep in history file
 export HISTCONTROL=ignoredups   # do not save duplicate commands in history
-
+# ── Python ────────────────────────────────────────────────────────────────────
+conda activate base             # make miniforge python3 the default python3
 # <<< dotfiles shell config <<<

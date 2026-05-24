@@ -47,6 +47,8 @@ export EDITOR=nano              # default text editor
 export HISTSIZE=10000           # number of commands to keep in session history
 export HISTFILESIZE=20000       # number of commands to keep in history file
 export HISTCONTROL=ignoredups   # do not save duplicate commands in history
+# ── Python ────────────────────────────────────────────────────────────────────
+conda activate base             # make miniforge python3 the default python3
 # <<< dotfiles shell config <<<
 SHELLCONFIG
     echo '      Shell config deployed to ~/.bashrc.'
