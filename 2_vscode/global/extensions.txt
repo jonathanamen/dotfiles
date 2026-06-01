@@ -21,3 +21,4 @@ ms-toolsai.jupyter-keymap
 ms-toolsai.jupyter-renderers
 njpwerner.autodocstring
 pkief.material-icon-theme
+yzane.markdown-pdf
