@@ -59,7 +59,9 @@ echo '[2/3] Saving extension snapshot...'
 
 # Write live extension list to snapshot file — NOT extensions.txt
 # extensions.txt is the curated intentional list and is managed manually
-code --list-extensions | sort > "$GLOBAL_DIR/extensions.snapshot"
+# Use powershell.exe to invoke Windows-side code CLI -- WSL's code command
+# only sees WSL server extensions and misses Windows-installed extensions
+powershell.exe -Command "code --list-extensions" | tr -d '\r' | sort > "$GLOBAL_DIR/extensions.snapshot"
 
 echo '      Saved extensions.snapshot.'
 echo ''
