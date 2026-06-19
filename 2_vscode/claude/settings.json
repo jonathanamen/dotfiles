@@ -1,3 +1,17 @@
 {
-  "theme": "dark"
+  "effortLevel": "high",
+  "model": "sonnet",
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "wsl.exe bash -c \"~/miniforge3/bin/python3 /mnt/c/Users/Anglachel/Documents/GitHub/TDBI/state/hooks/raw-sync.py\""
+          }
+        ]
+      }
+    ]
+  }
 }
