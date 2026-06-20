@@ -76,13 +76,22 @@ echo '      diff global/extensions.txt global/extensions.snapshot'
 echo ''
 echo '[3/3] Saving Claude Code global settings...'
 
-CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+# Claude Code GUI runs on Windows; settings.json lives in the Windows user home.
+# Prefer Windows path (authoritative), fall back to WSL home.
+WIN_USER="${DOTFILES_WINDOWS_USERNAME:-$(echo "$DOTFILES_ROOT" | cut -d/ -f5)}"
+WIN_CLAUDE_SETTINGS="/mnt/c/Users/$WIN_USER/.claude/settings.json"
+if [[ -f "$WIN_CLAUDE_SETTINGS" ]]; then
+    CLAUDE_SETTINGS="$WIN_CLAUDE_SETTINGS"
+else
+    CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+fi
+
 if [[ -f "$CLAUDE_SETTINGS" ]]; then
     mkdir -p "$CLAUDE_DIR"
     cp "$CLAUDE_SETTINGS" "$CLAUDE_DIR/settings.json"
-    echo '      Saved ~/.claude/settings.json.'
+    echo "      Saved $CLAUDE_SETTINGS."
 else
-    echo '      ~/.claude/settings.json not found -- skipping.'
+    echo '      settings.json not found (checked Windows and WSL home) -- skipping.'
 fi
 
 # ── Suggest next steps ────────────────────────────────────────────────────────

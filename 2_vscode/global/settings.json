@@ -5,17 +5,5 @@
     "editor.minimap.enabled": false,
     "workbench.colorTheme": "Default High Contrast",
     "files.autoSave": "onFocusChange",
-    "terminal.integrated.defaultProfile.linux": "bash",
-    "gitlens.ai.model": "gitkraken",
-    "gitlens.ai.gitkraken.model": "gemini:gemini-2.5-flash",
-    "workbench.startupEditor": "none",
-    "claudeCode.preferredLocation": "panel",
-    "git.openRepositoryInParentFolders": "never",
-    "markdown-pdf.styles": [
-        "C:/Users/Anglachel/Documents/GitHub/TDBI/projects/009-job-search/resume.css"
-    ],
-    "markdown-pdf.displayHeaderFooter": true,
-    "markdown-pdf.headerTemplate": "<div></div>",
-    "markdown-pdf.footerTemplate": "<div style=\"font-size: 8pt; font-family: Arial, sans-serif; text-align: right; width: 100%; padding-right: 0.5in;\">Resume: Jonathan Amen - Page <span class='pageNumber'></span> of <span class='totalPages'></span></div>",
-    "markdown-pdf.margin.bottom": "20mm"
+    "terminal.integrated.defaultProfile.linux": "bash"
 }
