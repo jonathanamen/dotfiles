@@ -1,18 +1,6 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(git -C \"c:\\\\Users\\\\thene\\\\OneDrive\\\\Documents\\\\GitHub\\\\TDBI\" diff HEAD agents/sessionmanager.txt)",
-      "Bash(git -C \"c:\\\\Users\\\\thene\\\\OneDrive\\\\Documents\\\\GitHub\\\\TDBI\" add agents/sessionmanager.txt)",
-      "Bash(git -C 'c:\\\\Users\\\\thene\\\\OneDrive\\\\Documents\\\\GitHub\\\\TDBI' commit -m ' *)",
-      "Bash(wsl bash *)",
-      "Bash(wsl ~/miniforge3/bin/python3 /mnt/c/Users/thene/OneDrive/Documents/GitHub/ltm/agents/librarian.py fetch backlog)",
-      "Read(//c/Users/thene/OneDrive/Documents/GitHub/ltm/outputs/**)",
-      "Read(//c/Users/thene/OneDrive/Documents/GitHub/ltm/agents/**)"
-    ],
-    "additionalDirectories": [
-      "c:\\Users\\thene\\OneDrive\\Documents\\GitHub\\ltm\\agents"
-    ]
-  },
+  "effortLevel": "high",
+  "model": "opus",
   "hooks": {
     "Stop": [
       {
@@ -20,11 +8,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "wsl.exe bash -c \"~/miniforge3/bin/python3 /mnt/c/Users/thene/OneDrive/Documents/GitHub/TDBI/state/hooks/raw-sync.py\""
+            "command": "wsl.exe bash -c \"~/miniforge3/bin/python3 /mnt/c/Users/Anglachel/Documents/GitHub/TDBI/hooks/raw-sync.py\""
           }
         ]
       }
     ]
   },
-  "theme": "dark"
+  "switchModelsOnFlag": true
 }
