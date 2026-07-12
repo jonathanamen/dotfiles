@@ -75,6 +75,8 @@ Modules must deploy in this order because each depends on the ones before it:
 | 1 | 1_conda/ | Python runtime — all other tools depend on it |
 | 2 | 2_vscode/ | Editor — extensions need Python to function |
 | 3 | 3_shell/ | Shell config — may reference tools installed above |
+| 4 | 4_node/ | Node, npm, and Claude Code — no dependents |
+| 5 | 5_annex/ | git-annex — content backend for the TDBI intake L0 tier; depends on nothing but git |
 
 ### Running a single module
 
@@ -83,6 +85,8 @@ Each module can be wiped and redeployed independently without running bootstrap:
     cd 1_conda && ./2_wipe.sh && ./3_deploy.sh && ./4_test.sh
     cd 2_vscode && ./2_wipe.sh && ./3_deploy.sh && ./4_test.sh
     cd 3_shell && ./2_wipe.sh && ./3_deploy.sh && ./4_test.sh
+    cd 4_node  && ./2_wipe.sh && ./3_deploy.sh && ./4_test.sh
+    cd 5_annex && ./2_wipe.sh && ./3_deploy.sh && ./4_test.sh
 
 ---
 
@@ -241,3 +245,12 @@ Decisions are grouped by category. Add new decisions to the relevant category.
 |---|---|
 | Separate extensions.txt and extensions.snapshot | extensions.txt is the curated intentional list; extensions.snapshot records live reality |
 | Separate extensions.txt and extensions.md | extensions.txt stays machine-readable for deploy; extensions.md is human-readable reference with docs links |
+
+### git-annex
+
+| Decision | Reason |
+|---|---|
+| Dotfiles installs git-annex but wires no remote | A backup remote is a property of a corpus on a machine, not of the machine: ENIAC uses a local folder, the client laptop uses the client's OneDrive. The grid (linter connect-intake) wires it and can re-point it with `git annex enableremote`. Dotfiles installs the tool; the grid decides where the bytes go. |
+| annex.largefiles is never set globally | A git config value for annex.largefiles **overrides** a repo's own .gitattributes. Verified live on 2026-07-12: a global `annex.largefiles=nothing` silently un-annexed the TDBI intake L0 tier and sent raw artifacts into the git object store even though .gitattributes said to annex them. Which files annex is a property of the corpus, and only the corpus may declare it. 3_deploy.sh actively unsets it. |
+| annex.autocommit=false | Every commit on the grid goes through herald's commit gate, where a human reads the diff first. Annex never commits on our behalf. |
+| 2_wipe.sh never touches annexed content | The L0 tier is evidence and nothing may delete it. Uninstalling the tool must not destroy the data — reinstall and `git annex get` restores access. |

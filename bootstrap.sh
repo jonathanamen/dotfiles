@@ -64,24 +64,29 @@ echo '  Phase 1: Wiping all modules'
 echo '================================================'
 echo ''
 
-echo '[ Wipe 1/4 ] Wiping node module...'
+echo '[ Wipe 1/5 ] Wiping annex module...'
+echo 'yes' | bash "$REPO_DIR/5_annex/2_wipe.sh"    # pipe 'yes' to skip confirmation prompt
+echo '[ Wipe 1/5 ] Annex module wiped.'
+echo ''
+
+echo '[ Wipe 2/5 ] Wiping node module...'
 echo 'yes' | bash "$REPO_DIR/4_node/2_wipe.sh"     # pipe 'yes' to skip confirmation prompt
-echo '[ Wipe 1/4 ] Node module wiped.'
+echo '[ Wipe 2/5 ] Node module wiped.'
 echo ''
 
-echo '[ Wipe 2/4 ] Wiping shell module...'
+echo '[ Wipe 3/5 ] Wiping shell module...'
 echo 'yes' | bash "$REPO_DIR/3_shell/2_wipe.sh"    # pipe 'yes' to skip confirmation prompt
-echo '[ Wipe 2/4 ] Shell module wiped.'
+echo '[ Wipe 3/5 ] Shell module wiped.'
 echo ''
 
-echo '[ Wipe 3/4 ] Wiping vscode module...'
+echo '[ Wipe 4/5 ] Wiping vscode module...'
 echo 'yes' | bash "$REPO_DIR/2_vscode/2_wipe.sh"   # pipe 'yes' to skip confirmation prompt
-echo '[ Wipe 3/4 ] VS Code module wiped.'
+echo '[ Wipe 4/5 ] VS Code module wiped.'
 echo ''
 
-echo '[ Wipe 4/4 ] Wiping conda module...'
+echo '[ Wipe 5/5 ] Wiping conda module...'
 echo 'yes' | bash "$REPO_DIR/1_conda/2_wipe.sh"    # pipe 'yes' to skip confirmation prompt
-echo '[ Wipe 4/4 ] Conda module wiped.'
+echo '[ Wipe 5/5 ] Conda module wiped.'
 echo ''
 
 # ── Deploy all modules in dependency order ────────────────────────────────────
@@ -90,44 +95,54 @@ echo '  Phase 2: Deploying all modules'
 echo '================================================'
 echo ''
 
-echo '[ Deploy 1/4 ] Running conda module setup and deploy...'
+echo '[ Deploy 1/5 ] Running conda module setup and deploy...'
 echo ''
 
 bash "$REPO_DIR/1_conda/0_setup.sh"    # run conda prerequisites
 bash "$REPO_DIR/1_conda/3_deploy.sh"   # install Miniforge and configure conda-forge
 
 echo ''
-echo '[ Deploy 1/4 ] Conda module complete.'
+echo '[ Deploy 1/5 ] Conda module complete.'
 echo ''
 
-echo '[ Deploy 2/4 ] Running vscode module setup and deploy...'
+echo '[ Deploy 2/5 ] Running vscode module setup and deploy...'
 echo ''
 
 bash "$REPO_DIR/2_vscode/0_setup.sh"                              # run vscode prerequisites
 bash "$REPO_DIR/2_vscode/3_deploy.sh" "$DOTFILES_FIRST_PROJECT"  # install extensions and settings
 
 echo ''
-echo '[ Deploy 2/4 ] VS Code module complete.'
+echo '[ Deploy 2/5 ] VS Code module complete.'
 echo ''
 
-echo '[ Deploy 3/4 ] Running shell module setup and deploy...'
+echo '[ Deploy 3/5 ] Running shell module setup and deploy...'
 echo ''
 
 bash "$REPO_DIR/3_shell/0_setup.sh"    # run shell prerequisites
 bash "$REPO_DIR/3_shell/3_deploy.sh"   # deploy shell config to ~/.bashrc
 
 echo ''
-echo '[ Deploy 3/4 ] Shell module complete.'
+echo '[ Deploy 3/5 ] Shell module complete.'
 echo ''
 
-echo '[ Deploy 4/4 ] Running node module setup and deploy...'
+echo '[ Deploy 4/5 ] Running node module setup and deploy...'
 echo ''
 
 bash "$REPO_DIR/4_node/0_setup.sh"    # run node prerequisites
 bash "$REPO_DIR/4_node/3_deploy.sh"   # install Node.js, npm, and Claude Code
 
 echo ''
-echo '[ Deploy 4/4 ] Node module complete.'
+echo '[ Deploy 4/5 ] Node module complete.'
+echo ''
+
+echo '[ Deploy 5/5 ] Running annex module setup and deploy...'
+echo ''
+
+bash "$REPO_DIR/5_annex/0_setup.sh"    # install git-annex
+bash "$REPO_DIR/5_annex/3_deploy.sh"   # set global annex config
+
+echo ''
+echo '[ Deploy 5/5 ] Annex module complete.'
 echo ''
 
 # ── Run all module tests ──────────────────────────────────────────────────────
@@ -155,6 +170,10 @@ echo ''
 
 bash "$REPO_DIR/4_node/4_test.sh"
 [[ $? -ne 0 ]] && TESTS_PASSED=false    # record failure if node test fails
+echo ''
+
+bash "$REPO_DIR/5_annex/4_test.sh"
+[[ $? -ne 0 ]] && TESTS_PASSED=false    # record failure if annex test fails
 echo ''
 
 # ── Final summary ─────────────────────────────────────────────────────────────

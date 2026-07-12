@@ -463,11 +463,18 @@ dotfiles/
 │   ├── 4_test.sh
 │   └── config/
 │       └── .bashrc
-└── 4_node/                       <- Node.js and Claude Code module
+├── 4_node/                       <- Node.js and Claude Code module
+│   ├── 0_setup.sh
+│   ├── 2_wipe.sh                 <- no 1_save.sh: node state is fixed (always Node + Claude Code), nothing to capture
+│   ├── 3_deploy.sh
+│   └── 4_test.sh
+└── 5_annex/                      <- git-annex module (content backend for the TDBI intake L0 tier)
     ├── 0_setup.sh
-    ├── 2_wipe.sh                 <- no 1_save.sh: node state is fixed (always Node + Claude Code), nothing to capture
+    ├── 1_save.sh
+    ├── 2_wipe.sh                 <- never touches annexed content: L0 is evidence, nothing may delete it
     ├── 3_deploy.sh
-    └── 4_test.sh
+    ├── 4_test.sh
+    └── config/                   <- version and global annex settings, written by 1_save.sh
 ```
 
 ---
