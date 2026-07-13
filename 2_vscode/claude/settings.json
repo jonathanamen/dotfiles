@@ -1,6 +1,30 @@
 {
-  "effortLevel": "high",
-  "model": "opus",
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"c:\\\\Users\\\\thene\\\\OneDrive\\\\Documents\\\\GitHub\\\\TDBI\" diff HEAD agents/sessionmanager.txt)",
+      "Bash(git -C \"c:\\\\Users\\\\thene\\\\OneDrive\\\\Documents\\\\GitHub\\\\TDBI\" add agents/sessionmanager.txt)",
+      "Bash(git -C 'c:\\\\Users\\\\thene\\\\OneDrive\\\\Documents\\\\GitHub\\\\TDBI' commit -m ' *)",
+      "Bash(wsl bash *)",
+      "Bash(wsl ~/miniforge3/bin/python3 /mnt/c/Users/thene/OneDrive/Documents/GitHub/ltm/agents/librarian.py fetch backlog)",
+      "Read(//c/Users/thene/OneDrive/Documents/GitHub/ltm/outputs/**)",
+      "Read(//c/Users/thene/OneDrive/Documents/GitHub/ltm/agents/**)",
+      "Bash(wsl.exe --shutdown)",
+      "Bash(wsl.exe bash *)",
+      "Bash(python3 -c ' *)",
+      "Bash(echo \"TDBI: exit $?\")",
+      "Bash(echo \"tdbi-corpus: exit $?\")",
+      "Bash(echo \"dotfiles: exit $?\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(MSYS_NO_PATHCONV=1 wsl.exe bash \"/mnt/c/Users/thene/AppData/Local/Temp/claude/c--Users-thene-OneDrive-Documents-GitHub-TDBI/5fe3aec1-6e44-4b2c-ba8f-5e01673d84a0/scratchpad/test-deploy.sh\")",
+      "Bash(MSYS_NO_PATHCONV=1 wsl.exe git -C /mnt/c/Users/thene/OneDrive/Documents/GitHub/dotfiles push)",
+      "Bash(MSYS_NO_PATHCONV=1 wsl.exe git -C /mnt/c/Users/thene/OneDrive/Documents/GitHub/TDBI push)",
+      "Bash(MSYS_NO_PATHCONV=1 wsl.exe bash -lc \"DOTFILES_WINDOWS_USERNAME=thene /mnt/c/Users/thene/OneDrive/Documents/GitHub/dotfiles/2_vscode/1_save.sh\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\thene\\OneDrive\\Documents\\GitHub\\ltm\\agents"
+    ]
+  },
+  "model": "sonnet",
   "hooks": {
     "Stop": [
       {
@@ -8,11 +32,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "wsl.exe bash -c \"~/miniforge3/bin/python3 /mnt/c/Users/Anglachel/Documents/GitHub/TDBI/hooks/raw-sync.py\""
+            "command": "wsl.exe bash -c \"~/miniforge3/bin/python3 /mnt/c/Users/thene/OneDrive/Documents/GitHub/TDBI/hooks/raw-sync.py\""
           }
         ]
       }
     ]
   },
-  "switchModelsOnFlag": true
+  "theme": "dark"
 }

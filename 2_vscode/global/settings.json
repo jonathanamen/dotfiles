@@ -1,9 +1,10 @@
 {
-    "editor.fontSize": 14,
-    "editor.tabSize": 4,
-    "editor.formatOnSave": true,
-    "editor.minimap.enabled": false,
     "workbench.colorTheme": "Default High Contrast",
-    "files.autoSave": "onFocusChange",
-    "terminal.integrated.defaultProfile.linux": "bash"
+    "workbench.startupEditor": "none",
+    "security.allowedUNCHosts": [
+        "wsl.localhost"
+    ],
+    "git.openRepositoryInParentFolders": "never",
+    "claudeCode.hideOnboarding": true,
+    "markdown.preview.breaks": true
 }
