@@ -1,0 +1,16 @@
+# Python packages installed into the miniforge BASE environment.
+#
+# The TDBI grid runs on ~/miniforge3/bin/python3 (base), not on a named environment, so its
+# dependencies belong here. Installed by 3_deploy.sh; verified by 4_test.sh.
+#
+# The citizens themselves are stdlib-only by design -- herald, orchestrator, linter, and
+# registrar have no dependencies at all, so the grid runs on a bare Python. These are for
+# RETRIEVAL only (ADR-0033), and only librarian imports them.
+
+# ONNX embedding runtime. NOT PyTorch: the same models (nomic, BGE, MiniLM) at ~50MB instead of
+# ~2GB. On a client laptop that is the difference between a trivial install and a security
+# conversation -- and zero-procurement deployability is a standing constraint, not a preference.
+fastembed>=0.8.0
+
+# Vector store: one sqlite file, no server, no account, SQL filters over metadata.
+sqlite-vec>=0.1.9

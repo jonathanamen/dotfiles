@@ -246,6 +246,15 @@ Decisions are grouped by category. Add new decisions to the relevant category.
 | Separate extensions.txt and extensions.snapshot | extensions.txt is the curated intentional list; extensions.snapshot records live reality |
 | Separate extensions.txt and extensions.md | extensions.txt stays machine-readable for deploy; extensions.md is human-readable reference with docs links |
 
+### Python packages
+
+| Decision | Reason |
+|---|---|
+| Base-env packages live in 1_conda/base-packages.txt, not in TDBI | The TDBI grid runs on the miniforge **base** python, so its dependencies are machine state, and machine state is dotfiles' job. A requirements.txt inside TDBI would be a second source of truth that a fresh machine never runs. |
+| 4_test.sh imports them rather than checking pip list | An installed-but-broken package passes a `pip list` check and fails at the first search. The import is the only test that means anything. |
+| TDBI_EMBED_THREADS=4 and OMP_NUM_THREADS=4 exported in .bashrc | ONNX defaults to one thread per core. On ENIAC (32 cores) an embedding pass spawned enough threads to take WSL down mid-index, live. An embedding pass is a background convenience, not a workload, and it must never be able to kill the machine it runs on. |
+| ...but the .bashrc export is NOT the real cap | `.bashrc` returns early for non-interactive shells, and the grid runs every citizen through `wsl.exe bash -c` -- which is non-interactive. So the export never reaches librarian. The binding cap is the default in TDBI's `lib/retrieval.py`; the export only covers interactive terminals. Worth knowing before trusting an env var to constrain anything the grid runs. |
+
 ### git-annex
 
 | Decision | Reason |

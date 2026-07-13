@@ -39,7 +39,7 @@ fi
 
 # 1. Install Miniforge
 echo ''
-echo '[1/3] Installing Miniforge...'
+echo '[1/4] Installing Miniforge...'
 
 if [[ -d "$MINIFORGE_DIR" ]]; then    # check if already installed
     echo "      Miniforge already installed at $MINIFORGE_DIR - skipping download."
@@ -76,7 +76,7 @@ echo '      Channel config verified: conda-forge only.'
 
 # 2. Update conda to latest version
 echo ''
-echo '[2/3] Updating conda...'
+echo '[2/4] Updating conda...'
 
 conda update -n base conda --yes -q    # update conda silently
 
@@ -84,7 +84,7 @@ echo '      Conda updated.'
 
 # 3. Rebuild environments from yml files
 echo ''
-echo '[3/3] Rebuilding environments...'
+echo '[3/4] Rebuilding environments...'
 
 if ! compgen -G "$ENVIRONMENTS_DIR/*.yml" > /dev/null 2>&1; then    # check if any yml files exist
     echo '      No environment definitions found in environments/'
@@ -96,6 +96,23 @@ else
         conda env create -f "$yml" --yes -q      # create environment from yml file silently
         echo "      Created: $ENV_NAME"
     done
+fi
+
+# 4. Install base-environment packages
+#
+# The TDBI grid runs on the BASE python (~/miniforge3/bin/python3), not on a named environment,
+# so its dependencies are installed here rather than in an env yml. Without this, librarian
+# retrieval fails on a fresh machine with an ImportError and nothing on the machine says why.
+echo ''
+echo '[4/4] Installing base-environment packages...'
+
+BASE_PACKAGES="$REPO_DIR/base-packages.txt"    # pip packages for the base env
+
+if [[ -f "$BASE_PACKAGES" ]]; then
+    "$MINIFORGE_DIR/bin/python3" -m pip install --quiet --upgrade -r "$BASE_PACKAGES"
+    echo "      Installed from base-packages.txt"
+else
+    echo '      No base-packages.txt found - skipping.'
 fi
 
 echo ''

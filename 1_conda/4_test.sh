@@ -37,7 +37,7 @@ fail() {
 
 # 1. Check Miniforge directory exists
 echo ''
-echo '[1/5] Checking Miniforge installation...'
+echo '[1/6] Checking Miniforge installation...'
 
 if [[ -d "$MINIFORGE_DIR" ]]; then
     pass "Miniforge directory exists at $MINIFORGE_DIR"
@@ -47,7 +47,7 @@ fi
 
 # 2. Check conda command is accessible
 echo ''
-echo '[2/5] Checking conda command...'
+echo '[2/6] Checking conda command...'
 
 if command -v conda &> /dev/null; then
     CONDA_VER=$(conda --version)
@@ -62,7 +62,7 @@ fi
 
 # 3. Check Python is accessible via conda
 echo ''
-echo '[3/5] Checking Python...'
+echo '[3/6] Checking Python...'
 
 PYTHON_PATH="$MINIFORGE_DIR/bin/python"
 
@@ -75,7 +75,7 @@ fi
 
 # 4. Verify conda-forge is the only channel
 echo ''
-echo '[4/5] Checking channel configuration...'
+echo '[4/6] Checking channel configuration...'
 
 if command -v conda &> /dev/null; then
     CHANNELS=$(conda config --show channels 2>/dev/null)
@@ -90,7 +90,7 @@ fi
 
 # 5. Check all expected environments exist
 echo ''
-echo '[5/5] Checking environments...'
+echo '[5/6] Checking environments...'
 
 YML_COUNT=$(ls "$ENVIRONMENTS_DIR"/*.yml 2>/dev/null | wc -l)
 
@@ -106,6 +106,32 @@ else
             fail "Environment missing: $ENV_NAME - run 3_deploy.sh"
         fi
     done
+fi
+
+# 6. Check base-environment packages import
+#
+# The TDBI grid runs on the base python, and librarian retrieval imports these. Without this
+# check a fresh machine looks healthy and then fails at the first search with an ImportError.
+echo ''
+echo '[6/6] Checking base-environment packages...'
+
+BASE_PACKAGES="$REPO_DIR/base-packages.txt"
+
+if [[ ! -f "$BASE_PACKAGES" ]]; then
+    echo '      No base-packages.txt - skipping.'
+    PASS=$((PASS + 1))
+else
+    if "$MINIFORGE_DIR/bin/python3" -c 'import fastembed' 2>/dev/null; then
+        pass 'fastembed importable (ONNX embedding runtime)'
+    else
+        fail 'fastembed not importable - run 3_deploy.sh'
+    fi
+
+    if "$MINIFORGE_DIR/bin/python3" -c 'import sqlite_vec' 2>/dev/null; then
+        pass 'sqlite_vec importable (vector store)'
+    else
+        fail 'sqlite_vec not importable - run 3_deploy.sh'
+    fi
 fi
 
 echo ''

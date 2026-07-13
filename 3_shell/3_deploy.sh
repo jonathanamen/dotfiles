@@ -49,6 +49,12 @@ export HISTFILESIZE=20000       # number of commands to keep in history file
 export HISTCONTROL=ignoredups   # do not save duplicate commands in history
 # ── Python ────────────────────────────────────────────────────────────────────
 conda activate base             # make miniforge python3 the default python3
+# ── TDBI ──────────────────────────────────────────────────────────────────────
+# ONNX embedding threads (librarian retrieval). Left unset, ONNX spawns one thread per core --
+# on a 32-core machine that took WSL down mid-index. An embedding pass is a background
+# convenience, not a workload, and must never be able to kill the machine it runs on.
+export TDBI_EMBED_THREADS=4     # cap ONNX threads for librarian retrieval
+export OMP_NUM_THREADS=4        # same cap for the OpenMP layer underneath it
 # <<< dotfiles shell config <<<
 SHELLCONFIG
     echo '      Shell config deployed to ~/.bashrc.'
