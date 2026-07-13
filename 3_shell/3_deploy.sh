@@ -64,23 +64,38 @@ conda activate base             # make miniforge python3 the default python3
 export TDBI_EMBED_THREADS=4     # cap ONNX threads for librarian retrieval
 export OMP_NUM_THREADS=4        # same cap for the OpenMP layer underneath it
 SHELLCONFIG
-    # TDBI/bin on PATH -- emitted in its own expanded heredoc because the block above is quoted
-    # and must stay literal. This is the line that makes the runbook true: every command there is
-    # written as a bare word (`mfs recology`, `herald fetch-step`), and without bin/ on PATH not
-    # one of them resolves (REC-O-20).
+    echo '      Shell config deployed to ~/.bashrc.'
+fi
+
+# TDBI/bin on PATH -- checked and appended independently of the block above, under its own
+# marker. The main block's skip check guards a single blob: a machine that deployed before this
+# section existed would see the marker already present and skip forever, never picking up the
+# addition on a later rerun (REC-O-20 recurrence). This is the line that makes the runbook true:
+# every command there is written as a bare word (`mfs recology`, `herald fetch-step`), and
+# without bin/ on PATH not one of them resolves.
+MARKER_TDBI_START='# >>> dotfiles TDBI path >>>'
+echo ''
+echo '[2/3] Deploying TDBI bin PATH...'
+if grep -q "$MARKER_TDBI_START" "$HOME/.bashrc"; then
+    echo '      TDBI bin PATH already deployed - skipping.'
+elif [[ -z "${DOTFILES_GITHUB_PATH:-}" ]]; then
+    echo '      DOTFILES_GITHUB_PATH not set -- copy config.env.example to config.env and fill it in, then rerun. Skipping.'
+else
     cat >> "$HOME/.bashrc" << SHELLCONFIG_TDBI
+$MARKER_TDBI_START
+# Managed by dotfiles/3_shell/3_deploy.sh - do not edit manually (REC-O-20)
 export PATH="\$PATH:$DOTFILES_GITHUB_PATH/TDBI/bin"   # citizen shims: mfs, herald, orchestrator, linter, registrar, librarian, consolidator
 # The GitHub root, exported so it is available interactively -- GRID-RUNBOOK uses it to write
 # repo paths that are copy-paste runnable on any machine (\$DOTFILES_GITHUB_PATH/recology, etc)
 # without hardcoding ANGLACHEL's layout into a committed doc.
 export DOTFILES_GITHUB_PATH="$DOTFILES_GITHUB_PATH"
-# <<< dotfiles shell config <<<
+# <<< dotfiles TDBI path <<<
 SHELLCONFIG_TDBI
-    echo '      Shell config deployed to ~/.bashrc.'
+    echo '      TDBI bin PATH deployed to ~/.bashrc.'
 fi
 
 echo ''
-echo '[2/2] Deploying .bash_aliases symlink...'
+echo '[3/3] Deploying .bash_aliases symlink...'
 ALIASES_SOURCE="$REPO_DIR/config/.bash_aliases"
 ALIASES_TARGET="$HOME/.bash_aliases"
 

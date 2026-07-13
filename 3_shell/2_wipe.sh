@@ -19,6 +19,7 @@
 set -e  # exit immediately if any command fails
 
 MARKER_START='# >>> dotfiles shell config >>>'    # start marker for managed block
+MARKER_TDBI_START='# >>> dotfiles TDBI path >>>'   # start marker for the TDBI PATH block
 
 echo '=== Shell Wipe ==='
 echo ''
@@ -34,8 +35,8 @@ if [[ "$CONFIRM" != 'yes' ]]; then    # require exact 'yes' to proceed
     exit 0
 fi
 
-# Check if managed block exists
-if ! grep -q "$MARKER_START" "$HOME/.bashrc"; then    # check if block is present
+# Check if either managed block exists
+if ! grep -q "$MARKER_START" "$HOME/.bashrc" && ! grep -q "$MARKER_TDBI_START" "$HOME/.bashrc"; then
     echo 'No dotfiles shell config block found in ~/.bashrc - already clean.'
     exit 0
 fi
@@ -50,9 +51,10 @@ echo "Backed up ~/.bashrc to: $BACKUP"
 ls -t "$HOME"/.bashrc.bak.* 2>/dev/null | tail -n +2 | xargs rm -f 2>/dev/null || true
 echo 'Old backups removed - keeping most recent only.'
 
-# Remove the managed block
-sed -i "/# >>> dotfiles shell config >>>/,/# <<< dotfiles shell config <<</d" "$HOME/.bashrc"    # remove block
-echo 'Removed dotfiles shell config block from ~/.bashrc.'
+# Remove the managed blocks
+sed -i "/# >>> dotfiles shell config >>>/,/# <<< dotfiles shell config <<</d" "$HOME/.bashrc"    # remove main block
+sed -i "/# >>> dotfiles TDBI path >>>/,/# <<< dotfiles TDBI path <<</d" "$HOME/.bashrc"          # remove TDBI PATH block
+echo 'Removed dotfiles shell config blocks from ~/.bashrc.'
 
 echo ''
 echo '=== Wipe complete. Run 3_deploy.sh to reinstall. ==='
