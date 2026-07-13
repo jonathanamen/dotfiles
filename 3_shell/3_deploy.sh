@@ -12,7 +12,15 @@
 #   - Symlinks .bash_aliases from dotfiles config into home directory
 set -e  # exit immediately if any command fails
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"    # absolute path to this script's directory
+DOTFILES_ROOT="$(cd "$REPO_DIR/.." && pwd)"                 # repo root, one level up from 3_shell
 MARKER_START='# >>> dotfiles shell config >>>'               # start marker for managed block
+
+# Load config.env for DOTFILES_GITHUB_PATH -- the GitHub root differs per machine
+# (ANGLACHEL has no OneDrive segment, ENIAC does), so it cannot be baked into a committed file.
+if [[ -f "$DOTFILES_ROOT/config.env" ]]; then
+    source "$DOTFILES_ROOT/config.env"
+fi
+
 echo '=== Shell Deploy ==='
 # Back up ~/.bashrc before modifying
 BACKUP="$HOME/.bashrc.bak.$(date +%Y%m%d%H%M%S)"    # timestamped backup filename
@@ -55,8 +63,19 @@ conda activate base             # make miniforge python3 the default python3
 # convenience, not a workload, and must never be able to kill the machine it runs on.
 export TDBI_EMBED_THREADS=4     # cap ONNX threads for librarian retrieval
 export OMP_NUM_THREADS=4        # same cap for the OpenMP layer underneath it
-# <<< dotfiles shell config <<<
 SHELLCONFIG
+    # TDBI/bin on PATH -- emitted in its own expanded heredoc because the block above is quoted
+    # and must stay literal. This is the line that makes the runbook true: every command there is
+    # written as a bare word (`mfs recology`, `herald fetch-step`), and without bin/ on PATH not
+    # one of them resolves (REC-O-20).
+    cat >> "$HOME/.bashrc" << SHELLCONFIG_TDBI
+export PATH="\$PATH:$DOTFILES_GITHUB_PATH/TDBI/bin"   # citizen shims: mfs, herald, orchestrator, linter, registrar, librarian, consolidator
+# The GitHub root, exported so it is available interactively -- GRID-RUNBOOK uses it to write
+# repo paths that are copy-paste runnable on any machine (\$DOTFILES_GITHUB_PATH/recology, etc)
+# without hardcoding ANGLACHEL's layout into a committed doc.
+export DOTFILES_GITHUB_PATH="$DOTFILES_GITHUB_PATH"
+# <<< dotfiles shell config <<<
+SHELLCONFIG_TDBI
     echo '      Shell config deployed to ~/.bashrc.'
 fi
 
