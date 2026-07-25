@@ -71,7 +71,7 @@ fi
 # marker. The main block's skip check guards a single blob: a machine that deployed before this
 # section existed would see the marker already present and skip forever, never picking up the
 # addition on a later rerun (REC-O-20 recurrence). This is the line that makes the runbook true:
-# every command there is written as a bare word (`mfs recology`, `herald fetch-step`), and
+# every command there is written as a bare word (`mfs first-company`, `herald fetch-step`), and
 # without bin/ on PATH not one of them resolves.
 MARKER_TDBI_START='# >>> dotfiles TDBI path >>>'
 echo ''
@@ -86,7 +86,7 @@ $MARKER_TDBI_START
 # Managed by dotfiles/3_shell/3_deploy.sh - do not edit manually (REC-O-20)
 export PATH="\$PATH:$DOTFILES_GITHUB_PATH/TDBI/bin"   # citizen shims: mfs, herald, orchestrator, linter, registrar, librarian, consolidator
 # The GitHub root, exported so it is available interactively -- GRID-RUNBOOK uses it to write
-# repo paths that are copy-paste runnable on any machine (\$DOTFILES_GITHUB_PATH/recology, etc)
+# repo paths that are copy-paste runnable on any machine (\$DOTFILES_GITHUB_PATH/first-company, etc)
 # without hardcoding ANGLACHEL's layout into a committed doc.
 export DOTFILES_GITHUB_PATH="$DOTFILES_GITHUB_PATH"
 # <<< dotfiles TDBI path <<<

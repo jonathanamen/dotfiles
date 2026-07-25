@@ -11,7 +11,7 @@
 # Non-destructive to the machine - only writes into this repo.
 #
 # Note: annex REMOTES are deliberately not saved here. A remote's directory path is
-# machine-local and confidential by nature - the recology laptop points at the client's
+# machine-local and confidential by nature - the first-company laptop points at the client's
 # OneDrive, ENIAC points at a local folder - and git-annex already stores remote
 # metadata in the repo's own git-annex branch. Committing a path here would leak a
 # client's storage layout into a public dotfiles repo.

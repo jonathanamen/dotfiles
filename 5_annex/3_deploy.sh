@@ -13,7 +13,7 @@
 # What this deliberately does NOT do:
 #   It does not create, wire, or point any backup remote at any path. A remote is a
 #   property of a corpus on a machine, not of the machine itself: on ENIAC it is a local
-#   folder, on the recology laptop it is the client's OneDrive, on a locked-down client
+#   folder, on the first-company laptop it is the client's OneDrive, on a locked-down client
 #   it may be an external disk. That wiring belongs to the grid (linter connect-intake),
 #   which knows which workspace it is wiring and can be re-pointed with
 #   `git annex enableremote <name> directory=<path>` when a corpus moves machines.
