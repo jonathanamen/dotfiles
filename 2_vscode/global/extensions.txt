@@ -10,9 +10,9 @@ donjayamanne.python-extension-pack
 eamodio.gitlens
 github.vscode-pull-request-github
 kevinrose.vsc-python-indent
-matangover.mypy
 ms-python.black-formatter
 ms-python.debugpy
+ms-python.mypy-type-checker
 ms-python.python
 ms-python.vscode-pylance
 ms-python.vscode-python-envs

@@ -265,6 +265,7 @@ Decisions are grouped by category. Add new decisions to the relevant category.
 |---|---|
 | Separate extensions.txt and extensions.snapshot | extensions.txt is the curated intentional list; extensions.snapshot records live reality |
 | Separate extensions.txt and extensions.md | extensions.txt stays machine-readable for deploy; extensions.md is human-readable reference with docs links |
+| Prefer an extension that bundles its tool over one that shells out to PATH | `matangover.mypy` needs `dmypy` in the environment and `base-packages.txt` never listed mypy, so it failed on any machine where mypy had not arrived some other way. `ms-python.mypy-type-checker` bundles its own. This is the same defect class as flask being imported by the harness and installed by nothing: a declared tool with an undeclared dependency, invisible wherever the dependency happened to already exist. A bundled extension cannot drift from its dependency, and it adds nothing to a client laptop's install footprint. |
 
 ### Python packages
 
