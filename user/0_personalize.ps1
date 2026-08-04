@@ -125,13 +125,24 @@ if ([string]::IsNullOrWhiteSpace($backupAnswer)) { $backupAnswer = $defaultBacku
 $Config['DOTFILES_BACKUP_REMOTE'] = if ($backupAnswer.Trim().ToLower().StartsWith('y')) { 'true' } else { 'false' }
 
 # ── First project ─────────────────────────────────────────────────────────────
+# Optional, and 'none' is the right answer more often than not. This scaffolds a VS Code workspace
+# folder under the COMMITTED 2_vscode/projects/ tree, which means two things: a machine whose work
+# is cloned repos rather than scratch projects has no use for it, and it must never be named after
+# a client -- a company name in a committed folder is precisely what the gitignored company
+# registry exists to keep out of this tree.
 Write-Host ''
-Write-Host '-- First project --'
+Write-Host '-- First project (optional) --'
+Write-Host '  A VS Code workspace scaffold. Enter none if you do not want one.'
+Write-Host '  Never name it after a client: this folder is committed.'
 do {
-    $Config['DOTFILES_FIRST_PROJECT'] = Ask-Value 'DOTFILES_FIRST_PROJECT' 'First project (p###-name)' 'p001-my-first-project'
-    $valid = $Config['DOTFILES_FIRST_PROJECT'] -match '^p[0-9]{3}-.+'
-    if (-not $valid) { Write-Host '      Must look like p008-my-project.' }
+    $Config['DOTFILES_FIRST_PROJECT'] = Ask-Value 'DOTFILES_FIRST_PROJECT' 'First project (p###-name, or none)' 'none'
+    $answer = $Config['DOTFILES_FIRST_PROJECT']
+    $valid = ($answer -eq 'none') -or ([string]::IsNullOrWhiteSpace($answer)) -or ($answer -match '^p[0-9]{3}-.+')
+    if (-not $valid) { Write-Host '      Must look like p008-my-project, or none.' }
 } while (-not $valid)
+if ([string]::IsNullOrWhiteSpace($Config['DOTFILES_FIRST_PROJECT'])) {
+    $Config['DOTFILES_FIRST_PROJECT'] = 'none'
+}
 
 # ── Write config.env ──────────────────────────────────────────────────────────
 # Written in bash `KEY="value"` syntax because this file is SHARED with the WSL tree, which

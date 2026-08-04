@@ -55,7 +55,9 @@ error() {
 [[ -z "$DOTFILES_USER_EMAIL" ]]        && error 'DOTFILES_USER_EMAIL is empty'
 [[ -z "$DOTFILES_GITHUB_USERNAME" ]]   && error 'DOTFILES_GITHUB_USERNAME is empty'
 [[ -z "$DOTFILES_WINDOWS_USERNAME" ]]  && error 'DOTFILES_WINDOWS_USERNAME is empty'
-[[ -z "$DOTFILES_FIRST_PROJECT" ]]     && error 'DOTFILES_FIRST_PROJECT is empty'
+# DOTFILES_FIRST_PROJECT is deliberately NOT required (O-1248). It scaffolds a VS Code workspace
+# under the COMMITTED 2_vscode/projects/ tree, and a machine whose work is cloned repos rather than
+# scratch projects has no use for one. Empty or 'none' skips it.
 
 # Validate email format - must contain @
 if [[ -n "$DOTFILES_USER_EMAIL" ]] && [[ "$DOTFILES_USER_EMAIL" != *@* ]]; then
@@ -75,10 +77,10 @@ if [[ -n "$DOTFILES_WINDOWS_USERNAME" ]]; then
     fi
 fi
 
-# Validate project name format - must match p###-name pattern
-if [[ -n "$DOTFILES_FIRST_PROJECT" ]]; then
+# Validate project name format - must match p###-name pattern, unless skipped
+if [[ -n "$DOTFILES_FIRST_PROJECT" && "$DOTFILES_FIRST_PROJECT" != 'none' ]]; then
     if ! echo "$DOTFILES_FIRST_PROJECT" | grep -qE '^p[0-9]{3}-.+'; then    # check p###-name format
-        error "DOTFILES_FIRST_PROJECT must match format p###-name (e.g. p008-my-project): $DOTFILES_FIRST_PROJECT"
+        error "DOTFILES_FIRST_PROJECT must match format p###-name (e.g. p008-my-project), or none: $DOTFILES_FIRST_PROJECT"
     fi
 fi
 
@@ -122,13 +124,15 @@ echo "  Email: $DOTFILES_USER_EMAIL"
 
 # ── Create first project VS Code folder ───────────────────────────────────────
 echo ''
-echo "Creating VS Code project folder: $DOTFILES_FIRST_PROJECT"
 
 PROJECT_DIR="$REPO_DIR/2_vscode/projects/$DOTFILES_FIRST_PROJECT"
 
-if [[ -d "$PROJECT_DIR" ]]; then    # check if already exists
+if [[ -z "$DOTFILES_FIRST_PROJECT" || "$DOTFILES_FIRST_PROJECT" == 'none' ]]; then
+    echo 'No first project requested - skipping VS Code project scaffold.'
+elif [[ -d "$PROJECT_DIR" ]]; then    # check if already exists
     echo "  Already exists: $PROJECT_DIR — skipping."
 else
+    echo "Creating VS Code project folder: $DOTFILES_FIRST_PROJECT"
     mkdir -p "$PROJECT_DIR"    # create project folder
 
     cat > "$PROJECT_DIR/settings.json" << SETTINGSEOF
