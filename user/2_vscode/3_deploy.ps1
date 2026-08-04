@@ -114,8 +114,25 @@ $aiExtension = $Config['DOTFILES_AI_EXTENSION']
 if ([string]::IsNullOrWhiteSpace($aiExtension) -or $aiExtension -eq 'none') {
     Write-Host '      None chosen - skipping.'
 } else {
-    Write-Host "      Installing $aiExtension"
-    Invoke-Code @('--install-extension', $aiExtension, '--force') "install $aiExtension" | Out-Null
+    # Already listed? Then there is nothing to do, and forcing a reinstall only risks disturbing a
+    # working one.
+    $installed = @(& code --list-extensions)
+    if ($installed | Where-Object { $_ -ieq $aiExtension }) {
+        Write-Host "      $aiExtension already installed - skipping."
+    } elseif (-not (Invoke-Code @('--install-extension', $aiExtension, '--force') "install $aiExtension")) {
+        # A failure here is NOT necessarily a missing extension (O-1248). VS Code now SHIPS
+        # Copilot: installing GitHub.copilot pulls GitHub.copilot-chat, and the bundled built-in is
+        # newer than the marketplace version that dependency resolves to, so the CLI refuses to
+        # downgrade and exits 1. Found on a real machine, where the extension was present the whole
+        # time. Built-ins never appear in --list-extensions, so neither the install nor the listing
+        # can prove the thing is absent.
+        Write-Host ''
+        Write-Host "      $aiExtension did not install. On a current VS Code this usually means it"
+        Write-Host '      is BUILT IN and therefore already available -- built-in extensions are'
+        Write-Host '      invisible to --list-extensions, so this cannot be confirmed from the CLI.'
+        Write-Host '      Check the Extensions panel. If it is there, set DOTFILES_AI_EXTENSION=none'
+        Write-Host '      so this step stops trying to install what VS Code already gives you.'
+    }
 }
 
 # ── 4. Project config (optional) ──────────────────────────────────────────────

@@ -64,11 +64,6 @@ $expected = Get-Content (Join-Path $GlobalDir 'extensions.txt') |
     ForEach-Object { $_.Trim() } |
     Where-Object { $_ -ne '' -and -not $_.StartsWith('#') }
 
-$aiExtension = $Config['DOTFILES_AI_EXTENSION']
-if (-not [string]::IsNullOrWhiteSpace($aiExtension) -and $aiExtension -ne 'none') {
-    $expected += $aiExtension
-}
-
 foreach ($ext in $expected) {
     # Extension ids are case-insensitive; comparing them case-sensitively reports false failures.
     if ($installed -contains $ext -or ($installed | Where-Object { $_ -ieq $ext })) {
@@ -77,6 +72,22 @@ foreach ($ext in $expected) {
         Write-Host "      FAIL $ext not installed"
         $failures += "$ext missing"
     }
+}
+
+# The AI extension REPORTS, it does not fail the test (O-1248). VS Code ships Copilot as a built-in
+# now, and built-in extensions do not appear in --list-extensions at all -- so absence from that
+# list is not evidence of absence from the editor. This test failed a machine that had Copilot
+# working the entire time. A check that cannot tell "missing" from "invisible" must not be allowed
+# to fail a deploy; it says what it saw and lets a person decide.
+$aiExtension = $Config['DOTFILES_AI_EXTENSION']
+if ([string]::IsNullOrWhiteSpace($aiExtension) -or $aiExtension -eq 'none') {
+    Write-Host '      SKIP no AI extension configured'
+} elseif ($installed | Where-Object { $_ -ieq $aiExtension }) {
+    Write-Host "      OK   $aiExtension"
+} else {
+    Write-Host "      NOTE $aiExtension is not in the extension list."
+    Write-Host '           It may still be BUILT IN -- built-ins are invisible here.'
+    Write-Host '           Check the Extensions panel; this does not fail the test.'
 }
 
 # ── Report ────────────────────────────────────────────────────────────────────
