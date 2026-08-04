@@ -477,6 +477,7 @@ dotfiles/
 │   └── config/                   <- version and global annex settings, written by 1_save.sh
 └── user/                          <- the no-admin, no-WSL Windows deploy (see user/README.md)
     ├── README.md
+    ├── 0_personalize.ps1         <- asks for config and writes config.env + TDBI's machine file
     ├── bootstrap.ps1             <- wipes, deploys and tests the Windows modules in order
     ├── 1_conda/                  <- Miniforge "Just Me" into %LOCALAPPDATA%
     ├── 2_vscode/                 <- settings and extensions into %APPDATA%\Code\User

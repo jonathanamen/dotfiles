@@ -56,7 +56,17 @@ If SSH to `github.com` on port 22 is blocked or throttled on the network, put th
 ## Running it
 
     cd user
+    .\0_personalize.ps1    <- asks four questions, writes config.env and the machine file
     .\bootstrap.ps1
+
+`0_personalize.ps1` **asks** rather than making you hand-edit `config.env`, unlike the bash
+`0_personalize.sh` at the repo root. On a machine with no WSL and possibly no editor configured
+yet, "open config.env and fill it in" is a worse first instruction than four questions. Re-running
+it offers your current values as defaults, so pressing Enter through it changes nothing.
+
+It also writes `TDBI/config/machine.local.json` — this machine's capabilities, recorded where the
+grid reads them. If TDBI is not cloned yet (the normal case on a fresh machine) it prints the file
+and where to put it, which is why the order below works either way.
 
 Or one module at a time, exactly like the root tree:
 
