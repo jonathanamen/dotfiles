@@ -40,7 +40,14 @@ if (Test-Path $ConfigFile) {
 # /mnt/c, and a path that resolves nowhere is worse than a sensible default.
 $githubPath = $Config['DOTFILES_GITHUB_PATH_WIN']
 if ([string]::IsNullOrWhiteSpace($githubPath)) {
-    $githubPath = Join-Path $env:USERPROFILE 'Documents\GitHub'
+    # Ask Windows where Documents is (O-1248). OneDrive redirects it on most machines, and
+    # assuming %USERPROFILE%\Documents points the `gh` alias at a folder that may not be the one
+    # holding the repos -- or worse, at one that gets created empty by something else.
+    $documents = [Environment]::GetFolderPath('MyDocuments')
+    if ([string]::IsNullOrWhiteSpace($documents)) {
+        $documents = Join-Path $env:USERPROFILE 'Documents'
+    }
+    $githubPath = Join-Path $documents 'GitHub'
 }
 
 Write-Host '=== Shell Deploy ==='

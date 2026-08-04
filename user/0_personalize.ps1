@@ -70,7 +70,17 @@ $Config['DOTFILES_WINDOWS_USERNAME'] = Ask-Value 'DOTFILES_WINDOWS_USERNAME' 'Yo
 # ── Paths ─────────────────────────────────────────────────────────────────────
 Write-Host ''
 Write-Host '-- Paths --'
-$defaultGithub = Join-Path $env:USERPROFILE 'Documents\GitHub'
+# ASK WINDOWS where Documents is, never assume %USERPROFILE%\Documents (O-1248). OneDrive commonly
+# redirects Documents, and on a redirected machine those are two different folders: the assumed
+# path does not exist, so `mkdir -Force` silently CREATES a second Documents that Explorer never
+# shows under that name. Found live -- the repos cloned fine, ran fine, and sat outside OneDrive
+# entirely, which is the kind of wrong that only surfaces when you go looking for a folder.
+$documents = [Environment]::GetFolderPath('MyDocuments')
+if ([string]::IsNullOrWhiteSpace($documents)) {
+    $documents = Join-Path $env:USERPROFILE 'Documents'    # only if the shell folder is unreadable
+}
+$defaultGithub = Join-Path $documents 'GitHub'
+Write-Host "  Windows reports Documents as: $documents"
 $Config['DOTFILES_GITHUB_PATH_WIN'] = Ask-Value 'DOTFILES_GITHUB_PATH_WIN' 'GitHub directory' $defaultGithub
 
 # ── AI extension ──────────────────────────────────────────────────────────────

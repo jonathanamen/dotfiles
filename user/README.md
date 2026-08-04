@@ -36,6 +36,21 @@ Because there is no `5_annex`, this machine declares `backup_remote: false` in i
 and TDBI's evidence gate warns rather than blocks. That is the designed behaviour for a machine
 with nowhere to copy L0 content to, not a workaround.
 
+## Where to clone the repos
+
+Clone into the Documents folder **Windows reports**, not `%USERPROFILE%\Documents`. OneDrive
+redirects Documents on most machines, and on a redirected one those are two different folders:
+
+```powershell
+[Environment]::GetFolderPath('MyDocuments')    # the real one
+```
+
+`mkdir -Force` on the assumed path does not fail on a redirected machine — it silently creates a
+second Documents that Explorer never shows under that name. The repos then work perfectly and sync
+nowhere, which is only noticed when someone goes looking for the folder.
+
+`0_personalize.ps1` reads the real path and offers it as the default. Take the default.
+
 ## Prerequisites you install by hand, once
 
 None of these need administrator rights. Install them before running `bootstrap.ps1`.
