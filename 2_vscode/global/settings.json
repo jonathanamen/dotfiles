@@ -1,10 +1,13 @@
 {
     "workbench.colorTheme": "Default High Contrast",
+    "workbench.experimental.modernUI": false,
     "workbench.startupEditor": "none",
     "security.allowedUNCHosts": [
         "wsl.localhost"
     ],
     "git.openRepositoryInParentFolders": "never",
     "claudeCode.hideOnboarding": true,
-    "markdown.preview.breaks": true
+    "markdown.preview.breaks": true,
+    "security.workspace.trust.untrustedFiles": "open",
+    "security.promptForLocalFileProtocolHandling": false
 }
