@@ -97,6 +97,15 @@ if ($failed.Count -gt 0) {
 }
 Write-Host '  Bootstrap complete. All modules deployed and tested.'
 Write-Host ''
-Write-Host '  Next: clone TDBI and your corpus repos, then run'
-Write-Host '        user\3_shell\3_deploy.ps1 again if you change config.env.'
+Write-Host '  Open a NEW PowerShell window so the profile loads.'
+Write-Host ''
+# TDBI is normally already cloned by this point -- 0_personalize.ps1 wants it present so it can
+# write config\machine.local.json on the first pass instead of printing it to paste. The old wording
+# here told you to clone it AFTERWARDS, which contradicted that and would have left the machine
+# file unwritten. Found by citizen 000 reading the output of a successful run (O-1248).
+Write-Host '  Next:'
+Write-Host '    - Clone any corpus repos you still need beside TDBI.'
+Write-Host '    - If TDBI was cloned AFTER you ran 0_personalize.ps1, run it again so it can'
+Write-Host '      write TDBI\config\machine.local.json.'
+Write-Host '    - Re-run user\3_shell\3_deploy.ps1 whenever you change config.env.'
 Write-Host '================================================'
