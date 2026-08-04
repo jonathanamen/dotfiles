@@ -468,14 +468,26 @@ dotfiles/
 │   ├── 2_wipe.sh                 <- no 1_save.sh: node state is fixed (always Node + Claude Code), nothing to capture
 │   ├── 3_deploy.sh
 │   └── 4_test.sh
-└── 5_annex/                      <- git-annex module (content backend for the TDBI intake L0 tier)
-    ├── 0_setup.sh
-    ├── 1_save.sh
-    ├── 2_wipe.sh                 <- never touches annexed content: L0 is evidence, nothing may delete it
-    ├── 3_deploy.sh
-    ├── 4_test.sh
-    └── config/                   <- version and global annex settings, written by 1_save.sh
+├── 5_annex/                      <- git-annex module (content backend for the TDBI intake L0 tier)
+│   ├── 0_setup.sh
+│   ├── 1_save.sh
+│   ├── 2_wipe.sh                 <- never touches annexed content: L0 is evidence, nothing may delete it
+│   ├── 3_deploy.sh
+│   ├── 4_test.sh
+│   └── config/                   <- version and global annex settings, written by 1_save.sh
+└── win/                          <- the no-admin, no-WSL Windows deploy (see win/README.md)
+    ├── README.md
+    ├── bootstrap.ps1             <- wipes, deploys and tests the Windows modules in order
+    ├── 1_conda/                  <- Miniforge "Just Me" into %LOCALAPPDATA%
+    ├── 2_vscode/                 <- settings and extensions into %APPDATA%\Code\User
+    └── 3_shell/                  <- PowerShell profile, the counterpart of ~/.bashrc
 ```
+
+The `win/` modules carry no configuration data of their own. They read `config.env`,
+`1_conda/base-packages.txt` and `2_vscode/global/` from the paths above, so a setting changed
+once applies to both platforms. There is no `win/4_node` (Node exists here only for Claude Code,
+which that deploy does not use) and no `win/5_annex` (git-annex has no user-scope Windows
+install, and that machine is not an L0 backup target).
 
 ---
 

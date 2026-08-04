@@ -203,6 +203,10 @@ Decisions are grouped by category. Add new decisions to the relevant category.
 | Decision | Reason |
 |---|---|
 | One repo for all dotfiles | Single clone gets everything; tools are modular within the repo |
+| A `win/` tree, not a second repo | A fork means every module fix is made twice and the two drift. One repo keeps a single history and a single set of standards. |
+| A platform tree, not a flag on the existing scripts | The root modules are bash targeting a Linux userland — `1_conda` fetches the Linux Miniforge behind `sudo apt`, `3_shell` writes `~/.bashrc`, `4_node` runs `sudo apt install`. That is a different operating system, not an option a switch can turn off. A flag would have meant a conditional in every script and two untested paths through each. |
+| `win/` holds scripts only, never config data | `config.env`, `base-packages.txt` and `2_vscode/global/` are read from the root tree. A Windows copy of a settings file is a second source of truth that silently drifts from the first. |
+| Every `win/2_wipe.ps1` accepts `-Force`, even the ones that never prompt | `bootstrap.ps1` then calls all of them identically instead of keeping a list of which ones happen to ask a question. |
 | Each module has all 5 scripts | Standardization ensures every module is fully manageable independently |
 | conda before vscode in bootstrap order | Python must exist before VS Code extensions can function |
 | Modules must be independently runnable | Allows surgical wipe/redeploy of a single module without full bootstrap |
