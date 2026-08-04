@@ -18,6 +18,7 @@ $DotfilesRoot = Split-Path -Parent (Split-Path -Parent $RepoDir)      # repo roo
 $PackagesFile = Join-Path $DotfilesRoot '1_conda\base-packages.txt'   # SHARED with the WSL module
 $MiniforgeDir = Join-Path $env:LOCALAPPDATA 'miniforge3'
 $CondaExe = Join-Path $MiniforgeDir 'Scripts\conda.exe'
+$PythonExe = Join-Path $MiniforgeDir 'python.exe'    # the base env's python, which owns pip
 
 Write-Host '=== Conda Deploy ==='
 
@@ -91,9 +92,24 @@ if ($packages.Count -eq 0) {
     foreach ($package in $packages) {
         Write-Host "      Installing $package"
     }
-    # One call, not one per package: conda resolves the whole set together and a per-package loop
-    # can pick mutually incompatible versions that each looked fine on their own.
-    & $CondaExe install -y -n base -c conda-forge @packages
+    # PIP, not conda (O-1248). base-packages.txt is a pip requirements file -- pip syntax, pip
+    # version pins -- and the WSL module installs it with `pip install -r`. Installing the same
+    # file with conda was my inconsistency, and it fails outright: sqlite-vec is PyPI-only and is
+    # not on conda-forge, so conda rejects the batch and NOTHING gets installed. One file, one
+    # installer, both platforms.
+    $previous = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & $PythonExe -m pip install --quiet --upgrade -r $PackagesFile
+        $pipCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previous
+    }
+    if ($pipCode -ne 0) {
+        Write-Host "      WARNING: pip exited $pipCode - 4_test.ps1 will say which imports are missing."
+    } else {
+        Write-Host '      Base packages installed.'
+    }
 }
 
 # ── 3. Report ─────────────────────────────────────────────────────────────────
