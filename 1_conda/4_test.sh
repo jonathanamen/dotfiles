@@ -121,17 +121,24 @@ if [[ ! -f "$BASE_PACKAGES" ]]; then
     echo '      No base-packages.txt - skipping.'
     PASS=$((PASS + 1))
 else
-    if "$MINIFORGE_DIR/bin/python3" -c 'import fastembed' 2>/dev/null; then
-        pass 'fastembed importable (ONNX embedding runtime)'
-    else
-        fail 'fastembed not importable - run 3_deploy.sh'
-    fi
+    # Read the LIST rather than naming packages here. The hardcoded pair this replaces checked
+    # fastembed and sqlite_vec only, so flask sat in the file untested -- and flask was added
+    # precisely because the harness had imported it for months with nothing installing it. A test
+    # that has to be edited every time the list changes is a test that goes stale silently.
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        line="${line%%#*}"                          # strip trailing comments
+        line="$(echo "$line" | tr -d '[:space:]')"  # strip all whitespace
+        [[ -z "$line" ]] && continue
 
-    if "$MINIFORGE_DIR/bin/python3" -c 'import sqlite_vec' 2>/dev/null; then
-        pass 'sqlite_vec importable (vector store)'
-    else
-        fail 'sqlite_vec not importable - run 3_deploy.sh'
-    fi
+        package="${line%%[><=!]*}"    # "fastembed>=0.8.0" -> "fastembed"
+        module="${package//-/_}"      # the import name: sqlite-vec -> sqlite_vec
+
+        if "$MINIFORGE_DIR/bin/python3" -c "import $module" 2>/dev/null; then
+            pass "$module importable"
+        else
+            fail "$module not importable - run 3_deploy.sh"
+        fi
+    done < "$BASE_PACKAGES"
 fi
 
 echo ''

@@ -4,8 +4,10 @@
 # dependencies belong here. Installed by 3_deploy.sh; verified by 4_test.sh.
 #
 # The citizens themselves are stdlib-only by design -- herald, orchestrator, linter, and
-# registrar have no dependencies at all, so the grid runs on a bare Python. These are for
-# RETRIEVAL only (ADR-0033), and only librarian imports them.
+# registrar have no dependencies at all, so the grid runs on a bare Python. Everything below is
+# for a TOOL that sits beside the citizens: retrieval (ADR-0033) and the corpus web harness
+# (ADR-0039). A session never needs any of them, which is why a failure here costs search or the
+# harness and never the ritual.
 
 # ONNX embedding runtime. NOT PyTorch: the same models (nomic, BGE, MiniLM) at ~50MB instead of
 # ~2GB. On a client laptop that is the difference between a trivial install and a security
@@ -14,3 +16,9 @@ fastembed>=0.8.0
 
 # Vector store: one sqlite file, no server, no account, SQL filters over metadata.
 sqlite-vec>=0.1.9
+
+# The corpus web harness (TDBI tools/harness/server.py, ADR-0039). It has imported flask since it
+# was written and nothing installed it, so the harness has never once been runnable from a clean
+# bootstrap -- it worked only on machines where flask arrived as some other package's dependency.
+# That is the whole failure mode a declared base-package list exists to prevent.
+flask>=3.0.0
