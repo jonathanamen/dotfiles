@@ -54,7 +54,7 @@ Write-Host '[2/2] Checking that a new shell gets conda on PATH...'
 $miniforge = Join-Path $env:LOCALAPPDATA 'miniforge3'
 if (-not (Test-Path (Join-Path $miniforge 'python.exe'))) {
     Write-Host '      SKIP: Miniforge is not installed, so there is nothing to find on PATH.'
-    Write-Host '            Run win\1_conda\3_deploy.ps1 first.'
+    Write-Host '            Run user\1_conda\3_deploy.ps1 first.'
 } else {
     # A child powershell loads the profile the same way a new terminal would, so this measures
     # the deployed state rather than the state of the shell running the test.

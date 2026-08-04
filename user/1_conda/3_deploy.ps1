@@ -13,7 +13,7 @@
 
 $ErrorActionPreference = 'Stop'    # exit immediately if any command fails
 
-$RepoDir = Split-Path -Parent $MyInvocation.MyCommand.Path            # win\1_conda
+$RepoDir = Split-Path -Parent $MyInvocation.MyCommand.Path            # user\1_conda
 $DotfilesRoot = Split-Path -Parent (Split-Path -Parent $RepoDir)      # repo root
 $PackagesFile = Join-Path $DotfilesRoot '1_conda\base-packages.txt'   # SHARED with the WSL module
 $MiniforgeDir = Join-Path $env:LOCALAPPDATA 'miniforge3'

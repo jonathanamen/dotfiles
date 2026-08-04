@@ -3,7 +3,7 @@
 # Usage:
 #   .\bootstrap.ps1
 #
-# Prerequisites (see win\README.md - none of them need administrator rights):
+# Prerequisites (see user\README.md - none of them need administrator rights):
 #   - config.env exists at the repo root (copy config.env.example and fill it in)
 #   - VS Code installed with the USER installer
 #   - Git installed per-user, SSH keys in %USERPROFILE%\.ssh
@@ -14,11 +14,11 @@
 #   3. Runs all module tests to verify the deployment
 #
 # Wiping before deploying guarantees a clean state every time, exactly as the root bootstrap.sh
-# does. There is no 4_node and no 5_annex here - see win\README.md for why.
+# does. There is no 4_node and no 5_annex here - see user\README.md for why.
 
 $ErrorActionPreference = 'Stop'    # exit immediately if any command fails
 
-$RepoDir = Split-Path -Parent $MyInvocation.MyCommand.Path        # absolute path to win/
+$RepoDir = Split-Path -Parent $MyInvocation.MyCommand.Path        # absolute path to user/
 $DotfilesRoot = Split-Path -Parent $RepoDir                        # repo root, one level up
 $ConfigFile = Join-Path $DotfilesRoot 'config.env'                 # shared personal config
 
@@ -98,5 +98,5 @@ if ($failed.Count -gt 0) {
 Write-Host '  Bootstrap complete. All modules deployed and tested.'
 Write-Host ''
 Write-Host '  Next: clone TDBI and your corpus repos, then run'
-Write-Host '        win\3_shell\3_deploy.ps1 again if you change config.env.'
+Write-Host '        user\3_shell\3_deploy.ps1 again if you change config.env.'
 Write-Host '================================================'

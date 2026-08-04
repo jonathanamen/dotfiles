@@ -9,7 +9,7 @@
 #
 # This module never installs VS Code. On a machine with no admin rights the User Installer
 # (VSCodeUserSetup-x64-*.exe) is the only one that will run, and it is a hand step - see
-# win\README.md. What this module owns is the CONFIG inside an install that already exists.
+# user\README.md. What this module owns is the CONFIG inside an install that already exists.
 
 $ErrorActionPreference = 'Stop'    # exit immediately if any command fails
 

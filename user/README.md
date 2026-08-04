@@ -1,4 +1,4 @@
-# win/ — the no-admin, no-WSL deploy
+# user/ — the no-admin, no-WSL deploy
 
 The same dotfiles, for a machine where you are **not a local administrator** and WSL is not
 available. Everything here installs into your own user profile and touches nothing that needs
@@ -17,8 +17,8 @@ What is genuinely shared is the **configuration data**, and that is not duplicat
 | Shared file | Read by |
 |---|---|
 | `../config.env` | every module, same as the root tree |
-| `../1_conda/base-packages.txt` | `win/1_conda/3_deploy.ps1` |
-| `../2_vscode/global/settings.json`, `keybindings.json`, `extensions.txt` | `win/2_vscode/3_deploy.ps1` |
+| `../1_conda/base-packages.txt` | `user/1_conda/3_deploy.ps1` |
+| `../2_vscode/global/settings.json`, `keybindings.json`, `extensions.txt` | `user/2_vscode/3_deploy.ps1` |
 
 Only the scripts differ. Edit a setting once and both platforms get it.
 
@@ -55,11 +55,11 @@ If SSH to `github.com` on port 22 is blocked or throttled on the network, put th
 
 ## Running it
 
-    cd win
+    cd user
     .\bootstrap.ps1
 
 Or one module at a time, exactly like the root tree:
 
-    cd win\1_conda; .\2_wipe.ps1; .\3_deploy.ps1; .\4_test.ps1
+    cd user\1_conda; .\2_wipe.ps1; .\3_deploy.ps1; .\4_test.ps1
 
 `0_setup.ps1` in each module checks prerequisites and changes nothing.

@@ -14,7 +14,7 @@
 
 $ErrorActionPreference = 'Stop'    # exit immediately if any command fails
 
-$RepoDir = Split-Path -Parent $MyInvocation.MyCommand.Path            # win\2_vscode
+$RepoDir = Split-Path -Parent $MyInvocation.MyCommand.Path            # user\2_vscode
 $DotfilesRoot = Split-Path -Parent (Split-Path -Parent $RepoDir)      # repo root
 $GlobalDir = Join-Path $DotfilesRoot '2_vscode\global'                # SHARED with the WSL module
 $ProjectsDir = Join-Path $DotfilesRoot '2_vscode\projects'            # SHARED project configs

@@ -14,7 +14,7 @@
 
 $ErrorActionPreference = 'Stop'    # exit immediately if any command fails
 
-$RepoDir = Split-Path -Parent $MyInvocation.MyCommand.Path            # win\3_shell
+$RepoDir = Split-Path -Parent $MyInvocation.MyCommand.Path            # user\3_shell
 $DotfilesRoot = Split-Path -Parent (Split-Path -Parent $RepoDir)      # repo root
 $MarkerStart = '# >>> dotfiles shell config >>>'
 $MarkerEnd = '# <<< dotfiles shell config <<<'
@@ -76,8 +76,8 @@ $miniforge = Join-Path $env:LOCALAPPDATA 'miniforge3'
 
 $block = @"
 $MarkerStart
-# Managed by dotfiles/win/3_shell/3_deploy.ps1 - do not edit manually
-# Run win\3_shell\2_wipe.ps1 to remove, 3_deploy.ps1 to redeploy
+# Managed by dotfiles/user/3_shell/3_deploy.ps1 - do not edit manually
+# Run user\3_shell\2_wipe.ps1 to remove, 3_deploy.ps1 to redeploy
 
 # -- Conda on PATH --------------------------------------------------------------
 # The user-scope Miniforge. Installed with /AddToPath=0 deliberately, so PATH is owned here and
