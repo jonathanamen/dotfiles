@@ -14,6 +14,39 @@
 
 $ErrorActionPreference = 'Stop'    # exit immediately if any command fails
 
+# ── Calling `code` without letting a warning kill the deploy (O-1248) ─────────
+# `code.cmd` is a node wrapper, and node writes deprecation warnings to STDERR. In PowerShell 5.1
+# any stderr line from a NATIVE command is wrapped in a NativeCommandError, which under
+# ErrorActionPreference 'Stop' is terminating -- so a DeprecationWarning about `url.parse()` aborted
+# the whole bootstrap on the FIRST extension, after installing it successfully with exit code 0.
+#
+# Found on first contact with a real machine (JAMENLAPTOP), which is the entire reason T7 exists.
+#
+# The exit CODE is the truth about whether a native command worked; its stderr is not. So: drop the
+# preference for the duration of the call, let the warning print where it can be read, and judge the
+# result on $LASTEXITCODE.
+function Invoke-Code {
+    param([Parameter(Mandatory)][string[]]$Arguments, [string]$What)
+
+    $previous = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & code @Arguments
+        $code = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previous
+    }
+
+    if ($code -ne 0) {
+        # A failed extension install must not abort the rest of the deploy. It is reported and the
+        # loop continues -- one unavailable extension is not a reason to leave the machine half
+        # configured, and 4_test.ps1 is what decides whether the result is acceptable.
+        Write-Host "      WARNING: $What failed (exit $code)"
+        return $false
+    }
+    return $true
+}
+
 $RepoDir = Split-Path -Parent $MyInvocation.MyCommand.Path            # user\2_vscode
 $DotfilesRoot = Split-Path -Parent (Split-Path -Parent $RepoDir)      # repo root
 $GlobalDir = Join-Path $DotfilesRoot '2_vscode\global'                # SHARED with the WSL module
@@ -54,14 +87,21 @@ Write-Host "      settings.json and keybindings.json copied to $UserDir."
 Write-Host ''
 Write-Host '[2/4] Installing global extensions...'
 
+$failedExtensions = @()
 Get-Content (Join-Path $GlobalDir 'extensions.txt') |
     ForEach-Object { $_.Trim() } |
     Where-Object { $_ -ne '' -and -not $_.StartsWith('#') } |
     ForEach-Object {
         Write-Host "      Installing $_"
-        & code --install-extension $_ --force 2>$null
+        if (-not (Invoke-Code @('--install-extension', $_, '--force') "install $_")) {
+            $script:failedExtensions += $_
+        }
     }
-Write-Host '      Global extensions done.'
+if ($failedExtensions.Count -gt 0) {
+    Write-Host "      Global extensions done, $($failedExtensions.Count) failed: $($failedExtensions -join ', ')"
+} else {
+    Write-Host '      Global extensions done.'
+}
 
 # ── 3. The AI extension this machine chose ────────────────────────────────────
 # A machine with no admin rights may not be permitted Claude Code at all, so which assistant gets
@@ -75,7 +115,7 @@ if ([string]::IsNullOrWhiteSpace($aiExtension) -or $aiExtension -eq 'none') {
     Write-Host '      None chosen - skipping.'
 } else {
     Write-Host "      Installing $aiExtension"
-    & code --install-extension $aiExtension --force 2>$null
+    Invoke-Code @('--install-extension', $aiExtension, '--force') "install $aiExtension" | Out-Null
 }
 
 # ── 4. Project config (optional) ──────────────────────────────────────────────
@@ -100,7 +140,7 @@ if ([string]::IsNullOrWhiteSpace($Project)) {
             Where-Object { $_ -ne '' -and -not $_.StartsWith('#') } |
             ForEach-Object {
                 Write-Host "      Installing $_"
-                & code --install-extension $_ --force 2>$null
+                Invoke-Code @('--install-extension', $_, '--force') "install $_" | Out-Null
             }
     }
     Write-Host '      Project extensions done.'

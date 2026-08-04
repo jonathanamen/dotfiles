@@ -212,6 +212,15 @@ Decisions are grouped by category. Add new decisions to the relevant category.
 | The AI extension list is closed, not free text | A mistyped extension id installs nothing and reports nothing — `code --install-extension` treats an unknown id as a no-op. A closed list turns that silent failure into a validation error. |
 | `0_personalize` writes TDBI's `machine.local.json`, but only if TDBI is there | dotfiles is normally deployed before the repos are cloned, so a missing TDBI is the ordinary case on a fresh machine rather than a failure. It prints the file and where it goes instead, so either clone order works. |
 | `backup_remote` defaults to false and the prompt steers to no | It decides whether TDBI's evidence gate blocks or warns. Answering yes without a real remote creates a gate nothing can clear. |
+
+### PowerShell
+
+| Decision | Reason |
+|---|---|
+| Never redirect a native command's stderr (`2>$null`, `2>&1`) in PowerShell 5.1 | 5.1 wraps every stderr line from a native exe in a `NativeCommandError` and sets `$?` to false **even when the exit code is 0**. Under `$ErrorActionPreference = 'Stop'` that is terminating. Found on first contact with a real machine: `code.cmd` is a node wrapper, node printed a `url.parse()` deprecation warning, the extension installed successfully, and the whole bootstrap aborted anyway. |
+| Judge a native command by `$LASTEXITCODE`, never by `$?` or by whether it wrote to stderr | Plenty of working tools write warnings to stderr. The exit code is the only thing that states success or failure. |
+| Drop `$ErrorActionPreference` to `Continue` around native calls, then restore it | Keeps `Stop` for the PowerShell logic, where an unhandled error genuinely should abort, without letting a third-party tool's chattiness decide whether the deploy finishes. |
+| A failed extension install warns and continues | One unavailable extension is not a reason to leave a machine half configured. `4_test.ps1` is what decides whether the result is acceptable. |
 | Each module has all 5 scripts | Standardization ensures every module is fully manageable independently |
 | conda before vscode in bootstrap order | Python must exist before VS Code extensions can function |
 | Modules must be independently runnable | Allows surgical wipe/redeploy of a single module without full bootstrap |

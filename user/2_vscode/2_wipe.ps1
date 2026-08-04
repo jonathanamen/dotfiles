@@ -13,7 +13,11 @@
 
 param([switch]$Force)
 
-$ErrorActionPreference = 'Stop'    # exit immediately if any command fails
+# NOT 'Stop' (O-1248). `code.cmd` is a node wrapper and node writes deprecation warnings to stderr;
+# in PowerShell 5.1 a native command's stderr becomes a NativeCommandError, which under 'Stop' is
+# terminating. That aborted the deploy on a real machine over a warning about `url.parse()`. A wipe
+# is meant to reach a known state, so one noisy or stuck extension must not stop the rest.
+$ErrorActionPreference = 'Continue'
 
 $UserDir = Join-Path $env:APPDATA 'Code\User'
 
@@ -45,8 +49,12 @@ if (-not $installed) {
         if ([string]::IsNullOrWhiteSpace($ext)) { continue }
         Write-Host "      Uninstalling $ext"
         # A failed uninstall must not abort the loop and leave the rest installed - the wipe is
-        # meant to reach a known state, and one stuck extension is not a reason to stop.
-        & code --uninstall-extension $ext --force 2>$null
+        # meant to reach a known state, and one stuck extension is not a reason to stop. stderr is
+        # NOT redirected: doing so is what wrapped a harmless node warning into a terminating error.
+        & code --uninstall-extension $ext --force
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "      WARNING: could not uninstall $ext (exit $LASTEXITCODE)"
+        }
     }
     Write-Host '      Extensions removed.'
 }

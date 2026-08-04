@@ -65,7 +65,11 @@ if (-not (Test-Path $PythonExe)) {
         $name = ($package -split '[><=!]')[0].Trim()
         $module = if ($ImportNames.ContainsKey($name)) { $ImportNames[$name] } else { $name }
 
-        & $PythonExe -c "import $module" 2>$null
+        # stderr goes to $null via the CHILD process, not a PowerShell redirect (O-1248). A PS 5.1
+        # redirect on a native command wraps each stderr line in a NativeCommandError; harmless
+        # under 'Continue' here, but it prints a wall of red for what is simply a failed import.
+        # The exit code is the answer either way.
+        & $PythonExe -c "import sys, io; sys.stderr = io.StringIO(); import $module"
         if ($LASTEXITCODE -eq 0) {
             Write-Host "      OK   import $module"
         } else {
