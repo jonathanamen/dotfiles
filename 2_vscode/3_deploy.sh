@@ -26,7 +26,7 @@ echo '=== VS Code Deploy ==='
 
 # ── 1. Global settings ────────────────────────────────────────────────────────
 echo ''
-echo '[1/3] Copying global VS Code settings...'
+echo '[1/5] Copying global VS Code settings...'
 
 # Write to WSL-side settings
 mkdir -p "$WSL_SETTINGS_DIR"
@@ -48,7 +48,7 @@ echo '      settings.json and keybindings.json copied.'
 
 # ── 2. Global extensions ──────────────────────────────────────────────────────
 echo ''
-echo '[2/3] Installing global extensions...'
+echo '[2/5] Installing global extensions...'
 
 while IFS= read -r ext || [[ -n "$ext" ]]; do
     [[ -z "$ext" || "$ext" == \#* ]] && continue
@@ -60,7 +60,7 @@ echo '      Global extensions done.'
 # ── 3. Project-specific config (optional) ─────────────────────────────────────
 echo ''
 if [[ -z "$PROJECT" ]]; then
-    echo '[3/3] No project specified — skipping project config.'
+    echo '[3/5] No project specified — skipping project config.'
     echo '      Available projects:'
     for d in "$REPO_DIR/projects"/*/; do
         echo "        - $(basename "$d")"
@@ -69,7 +69,7 @@ if [[ -z "$PROJECT" ]]; then
     echo '      Run with a project name to apply project config:'
     echo '      ./vscode/deploy.sh your-project-name'
 else
-    echo "[3/3] Applying project config: $PROJECT"
+    echo "[3/5] Applying project config: $PROJECT"
     PROJECT_DIR="$REPO_DIR/projects/$PROJECT"
     if [[ ! -d "$PROJECT_DIR" ]]; then
         echo "      ERROR: Project folder not found: $PROJECT_DIR"
@@ -89,17 +89,37 @@ fi
 
 # ── 4. Claude Code global settings ───────────────────────────────────────────
 echo ''
-echo '[4/4] Deploying Claude Code global settings...'
+echo '[4/5] Deploying Claude Code global settings...'
 
 CLAUDE_SETTINGS_SRC="$REPO_DIR/claude/settings.json"
-CLAUDE_SETTINGS_DEST="$HOME/.claude/settings.json"
+# The WINDOWS profile, not $HOME. Claude Code's GUI runs Windows-side and reads the settings there;
+# 1_save.sh has always READ from that path while this deployed to the Linux one, so the deploy has
+# been writing to a file nothing loads (O-1255). Same derivation 1_save.sh uses.
+WIN_USER="${DOTFILES_WINDOWS_USERNAME:-$(echo "$DOTFILES_ROOT" | cut -d/ -f5)}"
+CLAUDE_SETTINGS_DEST="/mnt/c/Users/$WIN_USER/.claude/settings.json"
 
 if [[ -f "$CLAUDE_SETTINGS_SRC" ]]; then
-    mkdir -p "$HOME/.claude"
+    mkdir -p "$(dirname "$CLAUDE_SETTINGS_DEST")"
     cp "$CLAUDE_SETTINGS_SRC" "$CLAUDE_SETTINGS_DEST"
-    echo '      Deployed claude/settings.json to ~/.claude/settings.json.'
+    echo "      Deployed claude/settings.json to $CLAUDE_SETTINGS_DEST."
 else
     echo '      claude/settings.json not found in repo -- skipping.'
+fi
+
+# ── 5. The raw-sync Stop hook ────────────────────────────────────────────────
+# Written HERE and not committed, because the command names this machine's interpreter and
+# checkout. It used to live inside claude/settings.json above, which shipped ENIAC's `wsl.exe`
+# line to every machine -- unrunnable on a Windows-native one, and silent when it failed.
+# Runs AFTER the copy above, which would otherwise overwrite the registration.
+echo ''
+echo '[5/5] Registering the raw-sync Stop hook...'
+if [[ -z "${DOTFILES_GITHUB_PATH:-}" ]]; then
+    echo '      DOTFILES_GITHUB_PATH not set -- cannot find TDBI. Skipping.'
+elif [[ ! -f "$DOTFILES_GITHUB_PATH/TDBI/tools/register_hook.py" ]]; then
+    echo "      No TDBI checkout at $DOTFILES_GITHUB_PATH/TDBI - skipping."
+    echo '      Without this the session transcript is never captured.'
+else
+    "$HOME/miniforge3/bin/python3" "$DOTFILES_GITHUB_PATH/TDBI/tools/register_hook.py"
 fi
 
 echo ''

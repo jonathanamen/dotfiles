@@ -88,8 +88,38 @@ fi
 
 if [[ -f "$CLAUDE_SETTINGS" ]]; then
     mkdir -p "$CLAUDE_DIR"
-    cp "$CLAUDE_SETTINGS" "$CLAUDE_DIR/settings.json"
-    echo "      Saved $CLAUDE_SETTINGS."
+    # The raw-sync Stop hook is stripped on the way in (O-1255). Its command names THIS machine's
+    # interpreter and checkout, so committing it ships one machine's path to every other -- which
+    # is exactly how `wsl.exe bash -c "~/miniforge3/..."` ended up in this repo, unrunnable on a
+    # Windows-native machine and silent when it failed. 3_deploy.sh writes the registration on the
+    # machine instead, via TDBI/tools/register_hook.py.
+    python3 - "$CLAUDE_SETTINGS" "$CLAUDE_DIR/settings.json" <<'STRIP'
+import json, sys
+src, dest = sys.argv[1], sys.argv[2]
+with open(src, encoding="utf-8") as f:
+    settings = json.load(f)
+hooks = settings.get("hooks") or {}
+kept = []
+for group in hooks.get("Stop") or []:
+    if not isinstance(group, dict):
+        continue
+    remaining = [h for h in group.get("hooks", [])
+                 if not (isinstance(h, dict) and "raw-sync.py" in str(h.get("command", "")))]
+    if remaining:
+        kept.append({**group, "hooks": remaining})
+if kept:
+    hooks["Stop"] = kept
+else:
+    hooks.pop("Stop", None)
+if hooks:
+    settings["hooks"] = hooks
+else:
+    settings.pop("hooks", None)
+with open(dest, "w", encoding="utf-8") as f:
+    json.dump(settings, f, indent=2)
+    f.write("\n")
+STRIP
+    echo "      Saved $CLAUDE_SETTINGS (raw-sync hook stripped -- it is machine-local)."
 else
     echo '      settings.json not found (checked Windows and WSL home) -- skipping.'
 fi

@@ -206,18 +206,5 @@
     ]
   },
   "model": "opus[1m]",
-  "hooks": {
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "wsl.exe bash -c \"~/miniforge3/bin/python3 /mnt/c/Users/thene/OneDrive/Documents/GitHub/TDBI/hooks/raw-sync.py\""
-          }
-        ]
-      }
-    ]
-  },
   "theme": "dark"
 }

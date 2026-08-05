@@ -74,7 +74,7 @@ Write-Host '=== VS Code Deploy ==='
 
 # ── 1. Global settings ────────────────────────────────────────────────────────
 Write-Host ''
-Write-Host '[1/4] Copying global VS Code settings...'
+Write-Host '[1/5] Copying global VS Code settings...'
 
 if (-not (Test-Path $UserDir)) {
     New-Item -ItemType Directory -Path $UserDir -Force | Out-Null
@@ -85,7 +85,7 @@ Write-Host "      settings.json and keybindings.json copied to $UserDir."
 
 # ── 2. Global extensions ──────────────────────────────────────────────────────
 Write-Host ''
-Write-Host '[2/4] Installing global extensions...'
+Write-Host '[2/5] Installing global extensions...'
 
 $failedExtensions = @()
 Get-Content (Join-Path $GlobalDir 'extensions.txt') |
@@ -108,7 +108,7 @@ if ($failedExtensions.Count -gt 0) {
 # installed is a per-machine decision, recorded in config.env by 0_personalize. 'none' is a valid
 # and complete answer, not a missing value.
 Write-Host ''
-Write-Host '[3/4] Installing the AI extension for this machine...'
+Write-Host '[3/5] Installing the AI extension for this machine...'
 
 $aiExtension = $Config['DOTFILES_AI_EXTENSION']
 if ([string]::IsNullOrWhiteSpace($aiExtension) -or $aiExtension -eq 'none') {
@@ -138,7 +138,7 @@ if ([string]::IsNullOrWhiteSpace($aiExtension) -or $aiExtension -eq 'none') {
 # ── 4. Project config (optional) ──────────────────────────────────────────────
 Write-Host ''
 if ([string]::IsNullOrWhiteSpace($Project)) {
-    Write-Host '[4/4] No project specified - skipping project config.'
+    Write-Host '[4/5] No project specified - skipping project config.'
     if (Test-Path $ProjectsDir) {
         Write-Host '      Available projects:'
         Get-ChildItem $ProjectsDir -Directory | ForEach-Object { Write-Host "        - $($_.Name)" }
@@ -146,10 +146,10 @@ if ([string]::IsNullOrWhiteSpace($Project)) {
 } else {
     $projectDir = Join-Path $ProjectsDir $Project
     if (-not (Test-Path $projectDir)) {
-        Write-Host "[4/4] ERROR: project not found: $projectDir"
+        Write-Host "[4/5] ERROR: project not found: $projectDir"
         exit 1
     }
-    Write-Host "[4/4] Applying project config: $Project"
+    Write-Host "[4/5] Applying project config: $Project"
     $projectExtensions = Join-Path $projectDir 'extensions.txt'
     if (Test-Path $projectExtensions) {
         Get-Content $projectExtensions |
@@ -162,6 +162,40 @@ if ([string]::IsNullOrWhiteSpace($Project)) {
     }
     Write-Host '      Project extensions done.'
     Write-Host "      Project settings.json stays in the repo - open $projectDir as a workspace."
+}
+
+# ── 5. The raw-sync Stop hook ─────────────────────────────────────────────────
+# The transcript capture, registered on the machine rather than committed (O-1255). The command
+# names this machine's interpreter and checkout, and the WSL twin's committed version of it -
+# `wsl.exe bash -c "~/miniforge3/..."` - cannot run here at all. TDBI owns the command shape via
+# machine.invocation(); this module owns knowing it is deploy time.
+#
+# It registers for BOTH assistants. Which one drives is a property of the machine, and on a
+# no-admin machine it may well be Copilot, which fires the same VS Code-compatible Stop event.
+Write-Host ''
+Write-Host '[5/5] Registering the raw-sync Stop hook...'
+
+$githubPath = $Config['DOTFILES_GITHUB_PATH_WIN']
+if ([string]::IsNullOrWhiteSpace($githubPath)) {
+    $documents = [Environment]::GetFolderPath('MyDocuments')
+    if ([string]::IsNullOrWhiteSpace($documents)) {
+        $documents = Join-Path $env:USERPROFILE 'Documents'
+    }
+    $githubPath = Join-Path $documents 'GitHub'
+}
+$registrar = Join-Path $githubPath 'TDBI\tools\register_hook.py'
+$python = Join-Path $env:LOCALAPPDATA 'miniforge3\python.exe'
+
+if (-not (Test-Path $registrar)) {
+    Write-Host "      No TDBI checkout at $githubPath\TDBI - skipping."
+    Write-Host '      Without this the session transcript is never captured.'
+} elseif (-not (Test-Path $python)) {
+    Write-Host "      Miniforge not found at $python - run user\1_conda\3_deploy.ps1 first. Skipping."
+} else {
+    & $python $registrar
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host '      WARNING: the hook did not register. Sessions will not capture a transcript.'
+    }
 }
 
 Write-Host ''
