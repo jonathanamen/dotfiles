@@ -20,10 +20,15 @@ $ErrorActionPreference = 'Stop'    # exit immediately if any command fails
 
 $MarkerStart = '# >>> dotfiles shell config >>>'
 $MarkerEnd = '# <<< dotfiles shell config <<<'
+# The TDBI PATH block is a second managed block with its own markers (O-1251), matching
+# 3_shell/2_wipe.sh:56. A wipe that removed only the first would leave a dead PATH entry behind
+# and the next deploy would see its marker and skip - so the wipe has to know about both.
+$MarkerTdbiStart = '# >>> dotfiles TDBI path >>>'
+$MarkerTdbiEnd = '# <<< dotfiles TDBI path <<<'
 
 Write-Host '=== Shell Wipe ==='
 Write-Host ''
-Write-Host '[1/2] Removing the dotfiles block...'
+Write-Host '[1/2] Removing the dotfiles blocks...'
 
 if (-not (Test-Path $PROFILE)) {
     Write-Host '      No profile exists - nothing to remove.'
@@ -33,8 +38,8 @@ if (-not (Test-Path $PROFILE)) {
 }
 
 $lines = @(Get-Content $PROFILE)
-if (-not ($lines -contains $MarkerStart)) {
-    Write-Host '      Block not present - nothing to remove.'
+if (-not (($lines -contains $MarkerStart) -or ($lines -contains $MarkerTdbiStart))) {
+    Write-Host '      Blocks not present - nothing to remove.'
 } else {
     $backup = "$PROFILE.bak.$(Get-Date -Format 'yyyyMMddHHmmss')"
     Copy-Item $PROFILE $backup -Force
@@ -45,13 +50,13 @@ if (-not ($lines -contains $MarkerStart)) {
     $kept = New-Object System.Collections.Generic.List[string]
     $inBlock = $false
     foreach ($line in $lines) {
-        if ($line -eq $MarkerStart) { $inBlock = $true; continue }
-        if ($line -eq $MarkerEnd) { $inBlock = $false; continue }
+        if ($line -eq $MarkerStart -or $line -eq $MarkerTdbiStart) { $inBlock = $true; continue }
+        if ($line -eq $MarkerEnd -or $line -eq $MarkerTdbiEnd) { $inBlock = $false; continue }
         if (-not $inBlock) { $kept.Add($line) }
     }
 
     Set-Content -Path $PROFILE -Value $kept -Encoding utf8
-    Write-Host '      Block removed.'
+    Write-Host '      Blocks removed.'
 }
 
 # ── Keep only the newest backup ───────────────────────────────────────────────

@@ -23,7 +23,7 @@ Write-Host '=== Shell Test ==='
 Write-Host ''
 
 # ── 1. The block is present and complete ──────────────────────────────────────
-Write-Host '[1/2] Checking the profile...'
+Write-Host '[1/3] Checking the profile...'
 
 if (-not (Test-Path $PROFILE)) {
     Write-Host "      FAIL: no profile at $PROFILE"
@@ -49,7 +49,7 @@ if (-not (Test-Path $PROFILE)) {
 
 # ── 2. A fresh shell picks up conda ───────────────────────────────────────────
 Write-Host ''
-Write-Host '[2/2] Checking that a new shell gets conda on PATH...'
+Write-Host '[2/3] Checking that a new shell gets conda on PATH...'
 
 $miniforge = Join-Path $env:LOCALAPPDATA 'miniforge3'
 if (-not (Test-Path (Join-Path $miniforge 'python.exe'))) {
@@ -67,6 +67,44 @@ if (-not (Test-Path (Join-Path $miniforge 'python.exe'))) {
     } else {
         Write-Host '      FAIL python is not on PATH in a new shell'
         $failures += 'python not on PATH'
+    }
+}
+
+# ── 3. The citizen commands actually resolve ──────────────────────────────────
+# This is the check that would have caught the whole problem (O-1251): the laptop had a machine
+# file saying `windows`, a python, and a TDBI checkout, and still could not run `herald` - because
+# bin/ held bash shims and no .cmd twin, and nothing put it on PATH. Every check that only reads
+# the profile passed the entire time.
+Write-Host ''
+Write-Host '[3/3] Checking the TDBI citizen shims...'
+
+# Read the deployed path out of the profile rather than re-deriving it: the point is to test what
+# was DEPLOYED, and a second copy of the derivation would agree with itself while disagreeing with
+# the profile that actually runs.
+$profileText = if (Test-Path $PROFILE) { Get-Content $PROFILE -Raw } else { '' }
+$tdbiRoot = $null
+# Anchored on \TDBI\bin, not on \bin: the conda line in the main block ends in \Library\bin; and
+# would otherwise match first and hand back a miniforge path.
+if ($profileText -match "(?m)^\`$env:PATH = '(.+?\\TDBI)\\bin;'") {
+    $tdbiRoot = $Matches[1]
+}
+$generator = if ($tdbiRoot) { Join-Path $tdbiRoot 'tools\generate_shims.py' } else { $null }
+$python = Join-Path $miniforge 'python.exe'
+
+if (-not $tdbiRoot) {
+    Write-Host '      FAIL: no TDBI bin PATH block in the profile - run 3_deploy.ps1'
+    $failures += 'TDBI PATH block missing'
+} elseif (-not (Test-Path $generator)) {
+    Write-Host "      SKIP: no TDBI checkout at $tdbiRoot"
+} elseif (-not (Test-Path $python)) {
+    Write-Host '      SKIP: Miniforge is not installed, so the shims cannot be checked.'
+} else {
+    & $python $generator --check
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host '      OK   shims are current for this machine'
+    } else {
+        Write-Host '      FAIL shims are missing or stale - run 3_deploy.ps1'
+        $failures += 'TDBI shims stale'
     }
 }
 

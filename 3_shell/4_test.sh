@@ -70,7 +70,7 @@ done
 
 # 4. Check key environment variables are set
 echo ''
-echo '[4/4] Checking environment variables...'
+echo '[4/5] Checking environment variables...'
 
 if [[ -n "$EDITOR" ]]; then    # check EDITOR is set and non-empty
     pass "EDITOR is set: $EDITOR"
@@ -82,6 +82,27 @@ if [[ -n "$HISTSIZE" ]]; then    # check HISTSIZE is set and non-empty
     pass "HISTSIZE is set: $HISTSIZE"
 else
     fail 'HISTSIZE is not set - run: source ~/.bashrc'
+fi
+
+# 5. Check the TDBI citizen shims exist and belong to this machine
+# This is the loud failure for a machine that skipped the deploy (O-1251). bin/ is generated and
+# gitignored, so a fresh clone has none of it -- and a shell cannot be made to say anything useful
+# about a word that resolves to nothing. Better told here than at the first herald call of a session.
+echo ''
+echo '[5/5] Checking TDBI citizen shims...'
+
+if [[ -z "${DOTFILES_GITHUB_PATH:-}" ]]; then
+    if [[ -f "$HOME/.bashrc" ]] && grep -q '>>> dotfiles TDBI path >>>' "$HOME/.bashrc"; then
+        fail 'DOTFILES_GITHUB_PATH is not set in this shell - run: source ~/.bashrc'
+    else
+        fail 'TDBI PATH block not deployed - run 3_deploy.sh'
+    fi
+elif [[ ! -f "$DOTFILES_GITHUB_PATH/TDBI/tools/generate_shims.py" ]]; then
+    echo "      SKIP: no TDBI checkout at $DOTFILES_GITHUB_PATH/TDBI"
+elif "$HOME/miniforge3/bin/python3" "$DOTFILES_GITHUB_PATH/TDBI/tools/generate_shims.py" --check; then
+    pass 'TDBI shims are current for this machine'
+else
+    fail 'TDBI shims are missing or stale - run 3_deploy.sh'
 fi
 
 echo ''

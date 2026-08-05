@@ -32,7 +32,7 @@ if grep -q "$MARKER_START" "$HOME/.bashrc"; then    # check if block already exi
     echo 'Run 2_wipe.sh first to redeploy from scratch.'
 else
     echo ''
-    echo '[1/2] Deploying shell config to ~/.bashrc...'
+    echo '[1/4] Deploying shell config to ~/.bashrc...'
     # Append managed block to ~/.bashrc
     cat >> "$HOME/.bashrc" << 'SHELLCONFIG'
 # >>> dotfiles shell config >>>
@@ -75,7 +75,7 @@ fi
 # without bin/ on PATH not one of them resolves.
 MARKER_TDBI_START='# >>> dotfiles TDBI path >>>'
 echo ''
-echo '[2/3] Deploying TDBI bin PATH...'
+echo '[2/4] Deploying TDBI bin PATH...'
 if grep -q "$MARKER_TDBI_START" "$HOME/.bashrc"; then
     echo '      TDBI bin PATH already deployed - skipping.'
 elif [[ -z "${DOTFILES_GITHUB_PATH:-}" ]]; then
@@ -95,7 +95,24 @@ SHELLCONFIG_TDBI
 fi
 
 echo ''
-echo '[3/3] Deploying .bash_aliases symlink...'
+echo '[3/4] Generating TDBI citizen shims...'
+# bin/ is OUTPUT, not committed code (O-1251). The one machine-specific line in a shim is the
+# interpreter, and that is knowable only here -- which is why the committed shims hardcoded the
+# dotfiles standard and had no Windows twin at all. TDBI owns the shim shape and the roster; this
+# module owns knowing that it is deploy time.
+if [[ -z "${DOTFILES_GITHUB_PATH:-}" ]]; then
+    echo '      DOTFILES_GITHUB_PATH not set -- cannot find TDBI. Skipping.'
+elif [[ ! -f "$DOTFILES_GITHUB_PATH/TDBI/tools/generate_shims.py" ]]; then
+    echo "      No TDBI checkout at $DOTFILES_GITHUB_PATH/TDBI - skipping."
+    echo '      Clone TDBI beside dotfiles and rerun; without this the citizen commands do not exist.'
+else
+    # Unpiped deliberately: `set -e` does not see through a pipe, and a generator that refuses
+    # (no interpreter to bake) must stop the deploy rather than print and be ignored.
+    "$HOME/miniforge3/bin/python3" "$DOTFILES_GITHUB_PATH/TDBI/tools/generate_shims.py"
+fi
+
+echo ''
+echo '[4/4] Deploying .bash_aliases symlink...'
 ALIASES_SOURCE="$REPO_DIR/config/.bash_aliases"
 ALIASES_TARGET="$HOME/.bash_aliases"
 
