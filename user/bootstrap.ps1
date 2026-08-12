@@ -50,7 +50,7 @@ if (-not (Test-Path $ConfigFile)) {
 }
 
 # The modules, in dependency order. Wipe walks this list backwards.
-$Modules = @('1_conda', '2_vscode', '3_shell', '4_azure_cli')
+$Modules = @('1_conda', '2_vscode', '3_shell', '4_azure_cli', '5_pac_cli')
 
 # ── Wipe all modules in reverse dependency order ──────────────────────────────
 Write-Host '--- Wiping all modules ---'

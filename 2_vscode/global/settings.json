@@ -9,5 +9,6 @@
     "claudeCode.hideOnboarding": true,
     "markdown.preview.breaks": true,
     "security.workspace.trust.untrustedFiles": "open",
-    "security.promptForLocalFileProtocolHandling": false
+    "security.promptForLocalFileProtocolHandling": false,
+    "mypy.dmypyExecutable": "C:\\Users\\JAmen\\AppData\\Local\\miniforge3\\Scripts\\dmypy.exe"
 }

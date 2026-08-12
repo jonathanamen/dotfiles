@@ -22,3 +22,8 @@ sqlite-vec>=0.1.9
 # bootstrap -- it worked only on machines where flask arrived as some other package's dependency.
 # That is the whole failure mode a declared base-package list exists to prevent.
 flask>=3.0.0
+
+# Data analysis and document tooling used by corpus tooling and recology workspace scripts.
+pdfplumber>=0.11.0
+matplotlib>=3.9.0
+openpyxl>=3.1.0
