@@ -10,6 +10,19 @@
     "markdown.preview.breaks": true,
     "security.workspace.trust.untrustedFiles": "open",
     "security.promptForLocalFileProtocolHandling": false,
-    "markdown-pdf.executablePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-    "mypy.dmypyExecutable": "C:\\Users\\JAmen\\AppData\\Local\\miniforge3\\Scripts\\dmypy.exe"
+    "claudeCode.preferredLocation": "panel",
+    "terminal.integrated.enableMultiLinePasteWarning": "never",
+    "chat.tools.terminal.autoApprove": {
+        "Get-Command": true,
+        "git config": true,
+        "ssh": true,
+        "git remote": true,
+        "git push": true,
+        "&": true
+    },
+    "chat.viewSessions.orientation": "stacked",
+    "mypy.dmypyExecutable": "C:\\Users\\JAmen\\AppData\\Local\\miniforge3\\Scripts\\dmypy.exe",
+    "terminal.integrated.env.windows": {
+        "PYTHONIOENCODING": "utf-8"
+    }
 }
