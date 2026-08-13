@@ -23,7 +23,9 @@ $PythonExe = Join-Path $MiniforgeDir 'python.exe'
 # The import name is not always the package name. Only the exceptions are listed; anything absent
 # is assumed to import under its own name.
 $ImportNames = @{
-    'sqlite-vec' = 'sqlite_vec'
+    'sqlite-vec'  = 'sqlite_vec'
+    'pyinstaller' = 'PyInstaller'   # installs lowercase, imports capitalised
+    'pyyaml'      = 'yaml'          # installs as pyyaml, imports as yaml
 }
 
 $failures = @()
@@ -76,6 +78,40 @@ if (-not (Test-Path $PythonExe)) {
             Write-Host "      FAIL import $module"
             $failures += "import $module"
         }
+    }
+}
+
+# ── Windows-only packages ─────────────────────────────────────────────────────
+# Reported SEPARATELY and never counted as a failure. These are the EDOM build toolchain, and a
+# machine that cannot build an exe still runs every session normally -- folding them into the
+# failures above would turn "this box does not build artifacts" into a broken conda module.
+Write-Host ''
+Write-Host 'Windows-only packages (build toolchain, not required for a session):'
+$WindowsPackagesFile = Join-Path $PSScriptRoot 'windows-packages.txt'
+if (-not (Test-Path $WindowsPackagesFile)) {
+    Write-Host '      none declared'
+} else {
+    $winPackages = Get-Content $WindowsPackagesFile |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { $_ -ne '' -and -not $_.StartsWith('#') }
+    $buildable = $true
+    foreach ($package in $winPackages) {
+        $name = ($package -split '[><=!]')[0].Trim()
+        # PyInstaller imports under a different case than it installs, which is exactly the kind of
+        # thing that makes a green test lie about a missing package.
+        $module = if ($ImportNames.ContainsKey($name)) { $ImportNames[$name] } else { $name }
+        & $PythonExe -c "import sys, io; sys.stderr = io.StringIO(); import $module"
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "      OK   import $module"
+        } else {
+            Write-Host "      MISS import $module"
+            $buildable = $false
+        }
+    }
+    if ($buildable) {
+        Write-Host '      This machine can build the EDOM executable.'
+    } else {
+        Write-Host '      This machine cannot build the EDOM executable. Run 3_deploy.ps1 to fix.'
     }
 }
 

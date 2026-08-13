@@ -1,0 +1,17 @@
+# Python packages installed into the miniforge BASE environment on WINDOWS ONLY.
+#
+# Separate from the shared 1_conda/base-packages.txt on purpose. That file is the grid's, and both
+# platforms install it. This one is for things that can only do their job on Windows, so putting
+# them in the shared list would install them into WSL where they cannot be used.
+#
+# THE CASE THIS EXISTS FOR: building the EDOM executable (EDM-O-948). PyInstaller does not
+# cross-compile -- it bundles the interpreter and libraries of the machine it runs on, so a Linux
+# host produces a Linux binary. A Windows artifact must be built by a Windows interpreter, which is
+# why a WSL machine needs this module's Windows half even though its citizens run inside WSL.
+
+# The freezer. Produces the single file that lives in an organization's document library.
+pyinstaller>=6.0
+
+# EDOM's engine reads ors-schema.yaml at runtime, so the freeze has to bundle PyYAML. The TDBI
+# citizens are stdlib-only; the EDOM engine is not, and the build interpreter needs what it bundles.
+pyyaml>=6.0

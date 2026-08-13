@@ -112,6 +112,36 @@ if ($packages.Count -eq 0) {
     }
 }
 
+# ── 2b. Windows-only packages ─────────────────────────────────────────────────
+# Things that can only do their job on Windows, kept out of the shared list so they are not
+# installed into WSL where they cannot be used. Today: the EDOM build toolchain, because PyInstaller
+# does not cross-compile and a Windows artifact must be built by a Windows interpreter.
+#
+# A failure here costs the BUILD, never the grid. The citizens are stdlib-only and the retrieval
+# dependencies came from the shared list above, so a machine that cannot install these still runs
+# every session normally -- it just cannot produce an exe.
+Write-Host ''
+Write-Host '[2b/3] Installing Windows-only packages...'
+
+$WindowsPackagesFile = Join-Path $RepoDir 'windows-packages.txt'
+if (-not (Test-Path $WindowsPackagesFile)) {
+    Write-Host "      No windows-packages.txt beside this script - skipping."
+} else {
+    $previous = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & $PythonExe -m pip install --quiet --upgrade -r $WindowsPackagesFile
+        $winCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previous
+    }
+    if ($winCode -ne 0) {
+        Write-Host "      WARNING: pip exited $winCode - the exe build will not be available."
+    } else {
+        Write-Host '      Windows-only packages installed.'
+    }
+}
+
 # ── 3. Report ─────────────────────────────────────────────────────────────────
 Write-Host ''
 Write-Host '[3/3] Verifying...'

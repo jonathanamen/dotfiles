@@ -4,6 +4,42 @@ The same dotfiles, for a machine where you are **not a local administrator** and
 available. Everything here installs into your own user profile and touches nothing that needs
 elevation.
 
+## A WSL machine may need one module from here
+
+The tree as a whole is for a machine with no WSL, and that is still what `bootstrap.ps1` is for. But
+**`1_conda` is also the way a WSL machine gets a Windows interpreter**, and one job needs that:
+building the EDOM executable. PyInstaller does not cross-compile — it bundles the interpreter and
+libraries of the machine it runs on, so a Linux host produces a Linux binary and a Windows artifact
+must be built by a Windows Python. ENIAC and ANGLACHEL run their citizens inside WSL and still need
+this module's half of the install to produce an exe.
+
+Run that one module on its own, never the whole bootstrap:
+
+```powershell
+cd user\1_conda
+.\0_setup.ps1     # checks only
+.\3_deploy.ps1    # miniforge to %LOCALAPPDATA%, shared packages, then windows-packages.txt
+```
+
+**In a normal PowerShell window, not an elevated one.** `0_setup.ps1` refuses an elevated shell on
+purpose: conda installed under an administrator token lands machine-wide and is not on your PATH.
+This was found the hard way — an assistant session installed miniforge with `winget --scope user`
+from an elevated shell and it went to `C:\ProgramData` with a machine-wide registry entry, which is
+not the path the grid documents (`%LOCALAPPDATA%\miniforge3`) and not what `machine.python_exe()`
+looks for.
+
+### Reading 4_test.ps1 on a WSL machine
+
+`4_test.ps1` will report the base packages — fastembed, sqlite-vec, flask, pdfplumber, matplotlib,
+openpyxl — as failures and exit 1 there, and on a WSL machine **that is expected rather than
+broken**. Those are the grid's retrieval and harness dependencies, and on a WSL machine the grid
+runs on `~/miniforge3/bin/python3` inside WSL, where the root `1_conda` module installs them. The
+Windows interpreter exists on that machine for one job, and the line that answers whether it can do
+it is the build-toolchain block, which is reported separately and never counted as a failure.
+
+On a `platform: windows` machine there is no WSL to hold them, the grid itself runs on this
+interpreter, and those failures are real.
+
 ## Why a second tree and not a flag
 
 The modules at the repo root are bash scripts targeting a Linux userland: `1_conda` fetches the
