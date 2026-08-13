@@ -10,5 +10,6 @@
     "markdown.preview.breaks": true,
     "security.workspace.trust.untrustedFiles": "open",
     "security.promptForLocalFileProtocolHandling": false,
+    "markdown-pdf.executablePath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
     "mypy.dmypyExecutable": "C:\\Users\\JAmen\\AppData\\Local\\miniforge3\\Scripts\\dmypy.exe"
 }
