@@ -168,6 +168,19 @@ if (-not (Test-Path $generator)) {
         Write-Host '      FAIL: the shim generator refused. The citizen commands will not resolve.'
         exit 1
     }
+
+    # .mcp.json is the same kind of artifact as bin/ and generated in the same breath (O-482): it
+    # bakes in this machine's interpreter AND the boundary its MCP host has to cross, so a
+    # committed one could only hardcode a guess. On this platform there is no boundary and the
+    # block is native paths; on a WSL machine the same call emits the wsl.exe form instead.
+    $toolserver = Join-Path $tdbiRoot 'tools\grid\toolserver.py'
+    if (Test-Path $toolserver) {
+        & $python $toolserver --write-config
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host '      FAIL: could not write .mcp.json. The MCP tool surface will not be reachable.'
+            exit 1
+        }
+    }
 }
 
 Write-Host ''

@@ -109,6 +109,12 @@ else
     # Unpiped deliberately: `set -e` does not see through a pipe, and a generator that refuses
     # (no interpreter to bake) must stop the deploy rather than print and be ignored.
     "$HOME/miniforge3/bin/python3" "$DOTFILES_GITHUB_PATH/TDBI/tools/generate_shims.py"
+
+    # .mcp.json is the same kind of artifact as bin/ and generated in the same breath (O-482): it
+    # bakes in this machine's interpreter AND the boundary its MCP host has to cross, so a
+    # committed one could only hardcode a guess. Without this the tool surface exists and no host
+    # has been told it exists, which is exactly how it went unused from the day it was built.
+    "$HOME/miniforge3/bin/python3" "$DOTFILES_GITHUB_PATH/TDBI/tools/grid/toolserver.py" --write-config
 fi
 
 echo ''
