@@ -30,3 +30,20 @@ openpyxl>=3.1.0
 
 # PowerPoint (.pptx) read/write for client deck deliverables (recology annual/roadmap decks).
 python-pptx>=1.0.0
+
+# NFL data for the ltm fantasy-football project (000-PRJ-0006): play-by-play, snap counts, and
+# the two loaders that matter most here -- load_ff_opportunity (expected fantasy production from
+# volume, which is that project's founding premise) and load_ff_rankings (live FantasyPros ECR
+# with consensus spread).
+#
+# NOT nfl_data_py, which is the library that project's original description named. That one pins
+# pandas<2.0, and pandas 1.5.3 has no wheel for base's Python 3.13, so it cannot install here at
+# all -- it needs a named env on Python 3.11, and a `conda env export` of that env pins Linux
+# build strings and an absolute prefix, so the env is not portable either. nflreadpy is the
+# maintained successor from the same nflverse source, installs clean on 3.13, and carries the ff_
+# loaders nfl_data_py never had. Same data, no env.
+#
+# Shared list, so this reaches the WSL machines that hold ltm. It has no Windows half and never
+# gets one: the work machine holds no personal corpus, so a fantasy football dependency there
+# would be a package installed for a project that cannot exist on that box.
+nflreadpy>=0.1.5
