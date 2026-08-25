@@ -21,7 +21,6 @@
         "&": true
     },
     "chat.viewSessions.orientation": "stacked",
-    "mypy.dmypyExecutable": "C:\\Users\\JAmen\\AppData\\Local\\miniforge3\\Scripts\\dmypy.exe",
     "terminal.integrated.env.windows": {
         "PYTHONIOENCODING": "utf-8"
     }

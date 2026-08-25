@@ -2,5 +2,3 @@
 # Installed in addition to global extensions when deploying this project
 ms-python.python
 ms-python.vscode-pylance
-ms-toolsai.jupyter
-njpwerner.autodocstring

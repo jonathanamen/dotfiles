@@ -1,15 +1,18 @@
 # VS Code Extensions Reference
 
-Human-readable companion to extensions.txt. Contains the extension name, what it does, and a link to documentation. The machine-readable list used by deploy.sh lives in extensions.txt.
+Human-readable companion to `extensions.txt`. Contains the extension name, what it does, and a link
+to documentation. The machine-readable list used by the deploy scripts lives in `extensions.txt`.
 
----
+**What this list is curated for (REC-O-187).** Citizen 000 reads code and runs it; he does not
+author it by hand. Every extension below earns its place against one of three real uses:
 
-## Theme and UI
+1. **Reading code someone else wrote** -- navigation, definitions, history, blame.
+2. **Running Python scripts** -- interpreter selection, the Run button, the debugger.
+3. **Converting markdown to PDF** -- the deliverable format.
 
-| Extension | Description | Docs |
-|---|---|---|
-| [One Dark Theme](https://marketplace.visualstudio.com/items?itemName=akamud.vscode-theme-onedark) | Port of the Atom One Dark theme. Clean syntax highlighting across all languages. This is your color coding. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=akamud.vscode-theme-onedark) |
-| [Material Icon Theme](https://marketplace.visualstudio.com/items?itemName=pkief.material-icon-theme) | Replaces default file icons in the sidebar with clear, color-coded Material Design icons by file type. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=pkief.material-icon-theme) |
+Anything whose value lands only while a human is typing was removed. See "What was removed, and
+why" at the bottom, which exists so the same extensions are not re-added later on the assumption
+they were forgotten.
 
 ---
 
@@ -17,40 +20,67 @@ Human-readable companion to extensions.txt. Contains the extension name, what it
 
 | Extension | Description | Docs |
 |---|---|---|
-| [GitLens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) | Supercharges VS Code git. Shows inline blame (who wrote each line and when), full commit history, file and line history, and comparison tools. | [Docs](https://help.gitkraken.com/gitlens/gitlens-start-here/) |
-| [GitHub Pull Requests](https://marketplace.visualstudio.com/items?itemName=github.vscode-pull-request-github) | Manage GitHub pull requests and issues directly inside VS Code without switching to the browser. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=github.vscode-pull-request-github) |
+| [GitLens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) | Reading history. Inline blame (who wrote each line and when), full commit history, file and line history, and comparison tools. The single most useful extension for reading a codebase you did not write. | [Docs](https://help.gitkraken.com/gitlens/gitlens-start-here/) |
 
 ---
 
-## Python Core
+## Python
 
 | Extension | Description | Docs |
 |---|---|---|
-| [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) | The essential Microsoft Python extension. Enables running, linting, and debugging Python files in VS Code. | [Docs](https://code.visualstudio.com/docs/languages/python) |
-| [Pylance](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance) | Fast, feature-rich language server for Python. Powers IntelliSense, type checking, and auto-imports. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance) |
-| [Debugpy](https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy) | Python debugger. Set breakpoints, step through code, inspect variables at runtime. | [Docs](https://code.visualstudio.com/docs/python/debugging) |
-| [Black Formatter](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter) | Auto-formats Python code to Black style on save. Enforces consistent formatting with no configuration needed. | [Docs](https://black.readthedocs.io/en/stable/) |
-| [Python Envs](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-python-envs) | Microsoft's environment manager. Create and switch between virtual environments and conda envs from the VS Code UI. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-python-envs) |
-| [Python Extension Pack](https://marketplace.visualstudio.com/items?itemName=donjayamanne.python-extension-pack) | Bundle of commonly used Python extensions. Installs several useful tools in one shot. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=donjayamanne.python-extension-pack) |
-| [Python Environment Manager](https://marketplace.visualstudio.com/items?itemName=donjayamanne.python-environment-manager) | Visual manager for all Python environments on your machine — venv, conda, pyenv. Shows packages installed in each env. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=donjayamanne.python-environment-manager) |
+| [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) | The Microsoft Python extension. Interpreter selection, the Run button, and terminal integration. This is what makes `python server.py` a click instead of a command. | [Docs](https://code.visualstudio.com/docs/languages/python) |
+| [Pylance](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance) | The language server, kept for READING rather than writing. Go-to-definition, find-all-references, and hover types are how you follow a call through a file you did not write. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance) |
+| [Debugpy](https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy) | The debugger, and not optional even if you never set a breakpoint: the Run button routes through debugpy, so removing it removes the ability to run a file from the editor. | [Docs](https://code.visualstudio.com/docs/python/debugging) |
+| [Python Envs](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-python-envs) | Microsoft's environment manager. Picks WHICH conda env a script runs in, which on a machine with miniforge base plus named envs is the difference between a script working and a confusing ImportError. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-python-envs) |
 
 ---
 
-## Python Helpers
+## Documents
 
 | Extension | Description | Docs |
 |---|---|---|
-| [Python Indent](https://marketplace.visualstudio.com/items?itemName=kevinrose.vsc-python-indent) | Fixes VS Code's default Python indentation behavior. Correctly indents after function definitions, loops, and conditionals. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=kevinrose.vsc-python-indent) |
-| [Mypy Type Checker](https://marketplace.visualstudio.com/items?itemName=ms-python.mypy-type-checker) | Runs mypy static type checking in the background and surfaces type errors inline as you write code. **Bundles its own mypy**, so it needs nothing installed in the environment or on PATH -- this replaced `matangover.mypy`, which shells out to `dmypy` and failed with "dmypy was not found on path" on any machine where mypy had not been installed separately. | [Docs](https://mypy.readthedocs.io/en/stable/) |
-| [autoDocstring](https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring) | Generates Python docstring templates automatically when you type triple quotes after a function definition. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring) |
-| [Path IntelliSense](https://marketplace.visualstudio.com/items?itemName=christian-kohler.path-intellisense) | Autocompletes file paths as you type them in code. Works for imports, file references, and config files. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=christian-kohler.path-intellisense) |
+| [Markdown PDF](https://marketplace.visualstudio.com/items?itemName=yzane.markdown-pdf) | Converts markdown to PDF. The corpora are markdown and the deliverables are PDFs, so this is the bridge between them. Pointed at Edge rather than bundling Chromium. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=yzane.markdown-pdf) |
 
 ---
 
-## Jupyter
+## The AI assistant extension
 
-| Extension | Description | Docs |
-|---|---|---|
-| [Jupyter](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) | Full Jupyter notebook support inside VS Code. Run cells, view outputs, manage kernels. | [Docs](https://code.visualstudio.com/docs/datascience/jupyter-notebooks) |
-| [Jupyter Keymap](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter-keymap) | Brings standard Jupyter keyboard shortcuts into VS Code notebooks so muscle memory carries over. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter-keymap) |
-| [Jupyter Notebook Renderers](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter-renderers) | Renders rich notebook outputs — plots, LaTeX, interactive widgets — correctly inside VS Code. | [Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter-renderers) |
+Deliberately **not** in `extensions.txt`. Which assistant a machine gets is a per-machine decision
+recorded in `config.env` as `DOTFILES_AI_EXTENSION`, and `3_deploy` installs it from there. A
+client machine with no local administrator may not be permitted Claude Code at all, so `none` is a
+valid and complete answer. Note that VS Code now ships Copilot as a built-in, and built-in
+extensions never appear in `code --list-extensions` -- absence from that listing is not evidence of
+absence from the editor.
+
+---
+
+## What was removed, and why
+
+Recorded so these are not re-added later as things that were merely forgotten.
+
+### Authoring aids -- value lands only while a human types
+
+| Removed | Why |
+|---|---|
+| `christian-kohler.path-intellisense` | Completes file paths as you type them |
+| `kevinrose.vsc-python-indent` | Fixes indentation as you type |
+| `njpwerner.autodocstring` | Generates a docstring template when you type triple quotes |
+| `ms-python.black-formatter` | Formats on save, which only fires when a human is editing in the editor |
+| `ms-python.mypy-type-checker` | Surfaces type errors inline for an author to react to |
+
+### Redundant or superseded
+
+| Removed | Why |
+|---|---|
+| `donjayamanne.python-environment-manager` | Duplicates `ms-python.vscode-python-envs`, which is Microsoft's own and is the one kept |
+| `donjayamanne.python-extension-pack` | An opaque bundle that drags in Django, Jinja, IntelliCode, docstring and indent extensions, all authoring aids, none of them individually chosen. **Uninstalling it cascades:** removing the pack also removed `ms-python.python`, `debugpy`, `vscode-pylance` and `vscode-python-envs`, which are keepers. Reinstall those four after removing the pack, or run `3_deploy` which reinstalls everything in `extensions.txt` anyway. This is the pack's whole problem in one sentence: it owns extensions you chose for your own reasons |
+| `matangover.mypy` | Was replaced by `ms-python.mypy-type-checker` (which bundles its own mypy) and never removed. Its stale `mypy.dmypyExecutable` setting was dropped from `global/settings.json` at the same time |
+
+### Unused, on the evidence
+
+| Removed | Evidence |
+|---|---|
+| `ms-toolsai.jupyter`, `-keymap`, `-renderers`, `vscode-jupyter-cell-tags`, `vscode-jupyter-slideshow` | Zero `.ipynb` files exist anywhere under the GitHub checkout tree |
+| `github.vscode-pull-request-github` | There is no PR workflow. Every merge commit in the grid's history is a `git pull` reconciliation between machines, not a reviewed pull request |
+| `akamud.vscode-theme-onedark` | `global/settings.json` sets `workbench.colorTheme` to `Default High Contrast`. The theme was installed and not selected |
+| `pkief.material-icon-theme` | `global/settings.json` sets no `workbench.iconTheme` at all, so VS Code's built-in Seti icons are what is actually on screen. Same status as the color theme: installed, not selected |
