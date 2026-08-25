@@ -30,9 +30,9 @@ looks for.
 
 ### Reading 4_test.ps1 on a WSL machine
 
-`4_test.ps1` will report the base packages — fastembed, sqlite-vec, flask, pdfplumber, matplotlib,
-openpyxl — as failures and exit 1 there, and on a WSL machine **that is expected rather than
-broken**. Those are the grid's retrieval and harness dependencies, and on a WSL machine the grid
+`4_test.ps1` will report the base packages -- fastembed, sqlite-vec, flask, pdfplumber,
+matplotlib, openpyxl, python-pptx and nflreadpy -- as failures and exit 1 there, and on a WSL
+machine **that is expected rather than broken**. Those are the grid's retrieval and harness dependencies, and on a WSL machine the grid
 runs on `~/miniforge3/bin/python3` inside WSL, where the root `1_conda` module installs them. The
 Windows interpreter exists on that machine for one job, and the line that answers whether it can do
 it is the build-toolchain block, which is reported separately and never counted as a failure.
@@ -65,10 +65,19 @@ Only the scripts differ. Edit a setting once and both platforms get it.
 | `1_conda` | yes | Miniforge, "Just Me", into `%LOCALAPPDATA%\miniforge3` |
 | `2_vscode` | yes | Settings, keybindings and extensions into `%APPDATA%\Code\User` |
 | `3_shell` | yes | PowerShell profile, the counterpart of `~/.bashrc` |
-| `4_node` | **no** | Node is only here for Claude Code, which this deploy does not use |
-| `5_annex` | **no** | `git-annex` has no user-scope Windows install, and this machine is not an L0 backup target |
+| `4_azure_cli` | yes | Az PowerShell module from PSGallery, into the user's module path. No elevation |
+| `5_pac_cli` | yes | Power Platform CLI (`pac`) via winget |
+| `4_node` | **no counterpart** | Node is only here for Claude Code, which this deploy does not use |
+| `5_annex` | **no counterpart** | `git-annex` has no user-scope Windows install, and this machine is not an L0 backup target |
 
-Because there is no `5_annex`, this machine declares `backup_remote: false` in its machine file,
+`bootstrap.ps1` deploys all five that say yes, in that order.
+
+**The slot numbers do not pair with the root tree.** `4_azure_cli` is not a Windows `4_node` and
+`5_pac_cli` is not a Windows `5_annex`; the root tree's 4 and 5 have no counterpart here at all,
+and these two have none there. The number orders this tree's own bootstrap and says nothing about
+the other side.
+
+Because there is no annex module here, this machine declares `backup_remote: false` in its machine file,
 and TDBI's evidence gate warns rather than blocks. That is the designed behaviour for a machine
 with nowhere to copy L0 content to, not a workaround.
 
@@ -107,13 +116,18 @@ If SSH to `github.com` on port 22 is blocked or throttled on the network, put th
 ## Running it
 
     cd user
-    .\0_personalize.ps1    <- asks four questions, writes config.env and the machine file
+    .\0_personalize.ps1    <- asks eight questions, writes config.env and the machine file
     .\bootstrap.ps1
 
 `0_personalize.ps1` **asks** rather than making you hand-edit `config.env`, unlike the bash
 `0_personalize.sh` at the repo root. On a machine with no WSL and possibly no editor configured
-yet, "open config.env and fill it in" is a worse first instruction than four questions. Re-running
-it offers your current values as defaults, so pressing Enter through it changes nothing.
+yet, "open config.env and fill it in" is a worse first instruction than a short interview.
+Re-running it offers your current values as defaults, so pressing Enter through it changes nothing.
+
+It asks eight: your name, email, GitHub username, Windows username, the GitHub directory, which AI
+extension this machine deploys, whether a git-annex backup remote is available, and your first
+project. The last three are the ones a hand-edited `config.env` most often ends up missing, and two
+of them are what TDBI reads to learn what this machine can do.
 
 It also writes `TDBI/config/machine.local.json` — this machine's capabilities, recorded where the
 grid reads them. If TDBI is not cloned yet (the normal case on a fresh machine) it prints the file

@@ -1,25 +1,47 @@
 # dotfiles
 
-Dev environment management repo. Follow this runbook top to bottom on any fresh Windows 11 machine and you will end up fully set up — WSL, Git, conda, VS Code, Claude Code, and all project configs deployed.
+Dev environment management repo. Written to be readable, not just runnable. Each command has an
+explanation so you understand what you are doing and why. Every step tells you what it does, why it
+matters, and what to expect.
 
-Written to be readable, not just runnable. Each command has an explanation so you understand what you are doing and why. Every step tells you what it does, why it matters, and what to expect.
+## Which tree is this machine?
+
+**Read this before step 0.** There are two deploys in this repo and only one of them applies to you.
+
+| If the machine has | Use | Start at |
+|---|---|---|
+| Administrator rights and WSL | the **root** tree (bash) | this runbook, top to bottom |
+| No local administrator, or no WSL | the **`user/`** tree (PowerShell) | [`user/README.md`](user/README.md) |
+
+Everything in this runbook assumes Windows plus WSL plus administrator. On a locked-down machine
+none of it will run, and following it to the end before finding that out is the failure this table
+exists to prevent. The `user/` tree installs entirely into your own profile and needs no elevation.
+
+The two trees share their configuration data and differ only in their scripts, so a setting changed
+in one applies to both. One case runs the other way: a WSL machine also needs `user/1_conda`,
+because building a Windows executable requires a Windows interpreter. `user/README.md` covers it.
 
 ## Table of contents
 
-1. Wipe and reinstall VS Code
-2. Prerequisites
-3. Install VS Code
-4. Install Git for Windows
-5. Install WSL
-6. Configure your Linux environment
-7. Install Node.js and Claude Code
-8. Install and configure Git (WSL)
-9. Clone this repo
+0. Wipe and reinstall VS Code
+1. Prerequisites
+2. Install VS Code
+3. Install Git for Windows
+4. Install WSL
+5. Configure your Linux environment
+6. Install Node.js and Claude Code
+7. Install and configure Git
+8. Clone this repo
+9. Connect VS Code to WSL
 10. Personalize and deploy
 11. Verify everything works
 12. Ongoing workflow
 13. System test
 14. Nuclear rebuild
+
+Then two reference sections that are not steps: [Repo structure](#repo-structure) and
+[Projects](#projects). The numbers above are the section numbers used in the body, so a
+cross-reference from elsewhere in the repo lands where it says it does.
 
 ---
 
@@ -42,7 +64,9 @@ Before uninstalling, confirm the following are saved in this repo and pushed to 
 - Any project workspace configs are saved under 2_vscode/projects/
 - All changes are committed and pushed to GitHub
 
-If anything is missing, run 2_vscode/1_save.sh first before wiping.
+If anything is missing, save before wiping. Which script depends on the tree this machine
+uses: `2_vscode/1_save.sh` on a WSL machine, `user\2_vscode\1_save.ps1` on a machine running
+the `user/` tree. Both write the same shared files under `2_vscode/global/`.
 
 ### Uninstall VS Code
 
@@ -165,7 +189,12 @@ bash --version    # should show bash 5.x
 
 ## 6. Install Node.js and Claude Code
 
-Node.js is required for Claude Code, Anthropic's agentic coding CLI. Install via npm using sudo to avoid permission errors.
+Node.js is required for Claude Code, Anthropic's agentic coding CLI.
+
+**`bootstrap.sh` already does this**, through `4_node/3_deploy.sh`. Run the commands below only if
+you want Claude Code before bootstrapping, or you are deploying that one module by hand. Do not run
+the module itself under `sudo`; it refuses an elevated shell on purpose and calls `sudo` internally
+where apt genuinely needs it.
 
 ```bash
 sudo apt install nodejs npm
@@ -276,20 +305,41 @@ cp config.env.example config.env
 nano config.env
 ```
 
-Fill in all five values:
+Fill in all nine values. `config.env.example` carries the full commentary for each; this is the
+summary.
 
-- DOTFILES_USER_NAME: your full name
-- DOTFILES_USER_EMAIL: your email, must match your GitHub account
-- DOTFILES_GITHUB_USERNAME: your GitHub username
-- DOTFILES_WINDOWS_USERNAME: your Windows login name (the folder name under C:\Users)
-- DOTFILES_FIRST_PROJECT: your first project in p###-name format
+**Identity and paths**
+
+- `DOTFILES_USER_NAME`: your full name
+- `DOTFILES_USER_EMAIL`: your email, must match your GitHub account
+- `DOTFILES_GITHUB_USERNAME`: your GitHub username
+- `DOTFILES_WINDOWS_USERNAME`: your Windows login name (the folder name under C:\Users)
+- `DOTFILES_GITHUB_PATH`: your GitHub directory in WSL terms, used by the shell navigation aliases
+- `DOTFILES_GITHUB_PATH_WIN`: the same directory in Windows terms, for the `user/` tree only.
+  Never a translation of the WSL path, because a machine with no WSL has no `/mnt/c`
+
+**Machine attributes.** These describe what this machine IS, and `0_personalize` writes them into
+TDBI's `config/machine.local.json`. That file is how the grid learns a machine's capabilities
+instead of matching its name against a hardcoded list, so leaving them out does not merely skip a
+setting, it leaves the grid unable to answer what machine it is standing on.
+
+- `DOTFILES_AI_EXTENSION`: which AI assistant this machine deploys, as a VS Code extension id.
+  A closed set: `GitHub.copilot`, `anthropic.claude-code`, `Continue.continue` or `none`. Current
+  VS Code ships Copilot as a built-in, so `none` is the right answer on many machines
+- `DOTFILES_BACKUP_REMOTE`: whether this machine has a git-annex remote it can actually copy L0
+  content to. Answering `true` without a real remote creates a TDBI evidence gate nothing can clear
+
+**Optional**
+
+- `DOTFILES_FIRST_PROJECT`: your first project in `p###-name` format, or `none`.
+  Never name it after a client, because `2_vscode/projects/` is committed
 
 Save with Ctrl+X, Y, Enter.
 
 ### Step 2 — Run personalize
 
 ```bash
-chmod +x 0_personalize.sh bootstrap.sh 1_conda/*.sh 2_vscode/*.sh 3_shell/*.sh
+chmod +x 0_personalize.sh bootstrap.sh [1-5]_*/*.sh
 ./0_personalize.sh
 ```
 
@@ -315,9 +365,12 @@ Then restart VS Code to apply all settings.
 cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles/1_conda && ./4_test.sh
 cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles/2_vscode && ./4_test.sh
 cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles/3_shell && ./4_test.sh
+cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles/4_node && ./4_test.sh
+cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles/5_annex && ./4_test.sh
 ```
 
-All tests should pass. If any fail, the error message tells you exactly which script to run to fix it.
+All five modules, not three. If any fail, the error message tells you exactly which script to run
+to fix it.
 
 ---
 
@@ -349,7 +402,7 @@ git push
 cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub
 git clone git@github.com:YOUR_USERNAME/dotfiles.git
 cd dotfiles
-chmod +x 0_personalize.sh bootstrap.sh 1_conda/*.sh 2_vscode/*.sh 3_shell/*.sh
+chmod +x 0_personalize.sh bootstrap.sh [1-5]_*/*.sh
 cp config.env.example config.env
 nano config.env
 ./0_personalize.sh
@@ -380,7 +433,12 @@ touch 2_vscode/projects/p###-your-project/extensions.txt
 cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles/1_conda && ./2_wipe.sh && ./3_deploy.sh && ./4_test.sh
 cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles/2_vscode && ./2_wipe.sh && ./3_deploy.sh && ./4_test.sh
 cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles/3_shell && ./2_wipe.sh && ./3_deploy.sh && ./4_test.sh
+cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles/4_node && ./2_wipe.sh && ./3_deploy.sh && ./4_test.sh
+cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles/5_annex && ./2_wipe.sh && ./3_deploy.sh && ./4_test.sh
 ```
+
+`5_annex/2_wipe.sh` removes the tool and never the annexed content. The L0 tier is evidence, so a
+wipe must not be able to destroy it: reinstall and `git annex get` restores access.
 
 ---
 
@@ -391,7 +449,7 @@ mv /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub/dotfiles /mnt/c/Users/YOU
 cd /mnt/c/Users/YOUR_WINDOWS_USERNAME/Documents/GitHub
 git clone git@github.com:YOUR_USERNAME/dotfiles.git
 cd dotfiles
-chmod +x 0_personalize.sh bootstrap.sh 1_conda/*.sh 2_vscode/*.sh 3_shell/*.sh
+chmod +x 0_personalize.sh bootstrap.sh [1-5]_*/*.sh
 cp config.env.example config.env
 nano config.env
 ./0_personalize.sh
@@ -440,6 +498,7 @@ dotfiles/
 │   ├── 2_wipe.sh
 │   ├── 3_deploy.sh
 │   ├── 4_test.sh
+│   ├── base-packages.txt         <- packages for the miniforge BASE env, installed by 3_deploy.sh
 │   └── environments/
 ├── 2_vscode/                     <- VS Code module
 │   ├── 0_setup.sh
@@ -453,6 +512,8 @@ dotfiles/
 │   │   ├── extensions.txt
 │   │   ├── extensions.snapshot
 │   │   └── extensions.md
+│   ├── claude/
+│   │   └── settings.json         <- Claude Code global settings, deployed to the WINDOWS profile
 │   └── projects/
 │       └── p008-arcane-predictive/
 ├── 3_shell/                      <- shell config module
@@ -462,7 +523,8 @@ dotfiles/
 │   ├── 3_deploy.sh
 │   ├── 4_test.sh
 │   └── config/
-│       └── .bashrc
+│       ├── .bashrc
+│       └── .bash_aliases         <- repo navigation aliases; no company repo is ever aliased here
 ├── 4_node/                       <- Node.js and Claude Code module
 │   ├── 0_setup.sh
 │   ├── 2_wipe.sh                 <- no 1_save.sh: node state is fixed (always Node + Claude Code), nothing to capture
@@ -481,19 +543,38 @@ dotfiles/
     ├── bootstrap.ps1             <- wipes, deploys and tests the Windows modules in order
     ├── 1_conda/                  <- Miniforge "Just Me" into %LOCALAPPDATA%
     ├── 2_vscode/                 <- settings and extensions into %APPDATA%\Code\User
-    └── 3_shell/                  <- PowerShell profile, the counterpart of ~/.bashrc
+    ├── 3_shell/                  <- PowerShell profile, the counterpart of ~/.bashrc
+    ├── 4_azure_cli/              <- Az PowerShell module, user scope, no elevation
+    └── 5_pac_cli/                <- Power Platform CLI (pac) via winget
 ```
 
 The `user/` modules carry no configuration data of their own. They read `config.env`,
 `1_conda/base-packages.txt` and `2_vscode/global/` from the paths above, so a setting changed
-once applies to both platforms. There is no `user/4_node` (Node exists here only for Claude Code,
-which that deploy does not use) and no `user/5_annex` (git-annex has no user-scope Windows
-install, and that machine is not an L0 backup target).
+once applies to both platforms.
+
+**The numbers do not pair across the two trees.** Slots 4 and 5 hold different modules on each
+side, and reading `user/4_azure_cli` as a Windows `4_node` is the mistake the numbering invites.
+The root tree's `4_node` and `5_annex` have no `user/` counterpart at all: Node is here only for
+Claude Code, which that deploy does not use, and `git-annex` has no user-scope Windows install, so
+such a machine is never an L0 backup target and declares `backup_remote: false`. What sits in those
+slots under `user/` is Windows-only client tooling the WSL tree has no equivalent for.
 
 ---
 
 ## Projects
 
+A project here is a VS Code workspace overlay under `2_vscode/projects/`, deployed on top of the
+global config with `./2_vscode/3_deploy.sh p###-name`. The overlay is additive and never removes
+anything the global config installed.
+
+Never name a project after a client. `2_vscode/projects/` is committed, and a company name in the
+committed tree is exactly what the gitignored company registry exists to prevent.
+
 ### p008-arcane-predictive
 
-MTG trading company (Arcane Predictive). Python/data stack. See 2_vscode/projects/p008-arcane-predictive/ for workspace settings and extensions.
+MTG trading company (Arcane Predictive). Python and data stack. See
+`2_vscode/projects/p008-arcane-predictive/` for workspace settings and extensions.
+
+Its `extensions.txt` now lists only `ms-python.python` and `ms-python.vscode-pylance`, both of
+which the global list already installs, so the overlay adds nothing beyond its `settings.json`
+(tab size, rulers, excludes and a `.venv` interpreter path). It is kept for those settings.

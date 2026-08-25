@@ -212,6 +212,11 @@ Decisions are grouped by category. Add new decisions to the relevant category.
 | The AI extension list is closed, not free text | A mistyped extension id installs nothing and reports nothing — `code --install-extension` treats an unknown id as a no-op. A closed list turns that silent failure into a validation error. |
 | `0_personalize` writes TDBI's `machine.local.json`, but only if TDBI is there | dotfiles is normally deployed before the repos are cloned, so a missing TDBI is the ordinary case on a fresh machine rather than a failure. It prints the file and where it goes instead, so either clone order works. |
 | `backup_remote` defaults to false and the prompt steers to no | It decides whether TDBI's evidence gate blocks or warns. Answering yes without a real remote creates a gate nothing can clear. |
+| Each module has all 5 scripts | Standardization ensures every module is fully manageable independently. |
+| conda before vscode in bootstrap order | Python must exist before VS Code extensions can function. |
+| Modules must be independently runnable | Allows surgical wipe or redeploy of a single module without a full bootstrap. |
+| bootstrap wipes before deploying | Guarantees a clean state every run, so updates are always applied. |
+| The slot numbers do not pair across the two trees | `4_node` and `5_annex` at the root have no `user/` counterpart, and `user/4_azure_cli` and `user/5_pac_cli` have no root counterpart. The number orders a tree's own bootstrap; it is not a cross-tree identity, and reading it as one is the mistake the scheme invites. |
 
 ### PowerShell
 
@@ -223,10 +228,6 @@ Decisions are grouped by category. Add new decisions to the relevant category.
 | A failed extension install warns and continues | One unavailable extension is not a reason to leave a machine half configured. `4_test.ps1` is what decides whether the result is acceptable. |
 | The AI extension is reported by `4_test.ps1`, never failed | VS Code ships Copilot as a **built-in**, and built-in extensions do not appear in `code --list-extensions` at all. Absence from that list is therefore not evidence of absence from the editor — the test failed a machine that had Copilot working the whole time. A check that cannot distinguish "missing" from "invisible" must not fail a deploy. |
 | Installing a built-in extension fails, and that is not a bug | `GitHub.copilot` pulls `GitHub.copilot-chat`; the bundled built-in is newer than the version that dependency resolves to, so the CLI refuses to downgrade and exits 1. On a current VS Code the right value is `none` — the editor already provides it. |
-| Each module has all 5 scripts | Standardization ensures every module is fully manageable independently |
-| conda before vscode in bootstrap order | Python must exist before VS Code extensions can function |
-| Modules must be independently runnable | Allows surgical wipe/redeploy of a single module without full bootstrap |
-| bootstrap wipes before deploying | Guarantees clean state every run; updates are always applied |
 
 ### Naming and structure
 
@@ -265,7 +266,19 @@ Decisions are grouped by category. Add new decisions to the relevant category.
 |---|---|
 | Separate extensions.txt and extensions.snapshot | extensions.txt is the curated intentional list; extensions.snapshot records live reality |
 | Separate extensions.txt and extensions.md | extensions.txt stays machine-readable for deploy; extensions.md is human-readable reference with docs links |
-| Prefer an extension that bundles its tool over one that shells out to PATH | `matangover.mypy` needs `dmypy` in the environment and `base-packages.txt` never listed mypy, so it failed on any machine where mypy had not arrived some other way. `ms-python.mypy-type-checker` bundles its own. This is the same defect class as flask being imported by the harness and installed by nothing: a declared tool with an undeclared dependency, invisible wherever the dependency happened to already exist. A bundled extension cannot drift from its dependency, and it adds nothing to a client laptop's install footprint. |
+| Prefer an extension that bundles its tool over one that shells out to PATH (principle retained, both extensions since removed) | `matangover.mypy` needs `dmypy` in the environment and `base-packages.txt` never listed mypy, so it failed on any machine where mypy had not arrived some other way. `ms-python.mypy-type-checker` bundles its own. This is the same defect class as flask being imported by the harness and installed by nothing: a declared tool with an undeclared dependency, invisible wherever the dependency happened to already exist. A bundled extension cannot drift from its dependency, and it adds nothing to a client laptop's install footprint. |
+
+| Curate the extension list for reading code, not writing it | Citizen 000 does not author code by hand, so an extension whose value lands only while a human types installs a cost with no reader on the other end. The surviving list serves three uses that are real: reading code someone else wrote, running Python scripts, and converting markdown to PDF. Recorded because the removed extensions are individually defensible and will look like oversights to anyone who does not know the premise. |
+| Extension packs are not installed | `donjayamanne.python-extension-pack` bundles further extensions nobody chose individually, and uninstalling it CASCADES: removing the pack also removed `ms-python.python`, `debugpy`, `vscode-pylance` and `vscode-python-envs`, all of which are keepers. A pack owns extensions you selected for your own reasons, which is the whole objection. |
+| The AI assistant extension is never listed in extensions.txt | Which assistant a machine gets is a per-machine decision held in gitignored `config.env` as `DOTFILES_AI_EXTENSION`, because a client machine with no local administrator may not be permitted all of them. Putting it in the shared curated list would deploy one machine's answer to every machine. |
+| An unused theme is removed like any other unused extension | Both `akamud.vscode-theme-onedark` and `pkief.material-icon-theme` were installed while `settings.json` selected `Default High Contrast` and set no `workbench.iconTheme` at all. What is on screen is decided by the settings, not by what is installed, so the settings are the evidence. |
+
+### Shell aliases
+
+| Decision | Reason |
+|---|---|
+| No company repo ever gets a bash alias | An alias in `3_shell/config/.bash_aliases` is committed code, so aliasing a client would publish a confidential workspace name to every machine this repo deploys to and to anyone it is later forked for. Company workspaces are located through TDBI's gitignored local registry instead. |
+| Aliases are only for repos that exist on every machine the file deploys to | An alias to a checkout that is not there resolves to a `cd` into nothing, which reads as a broken environment rather than a stale list. |
 
 ### Python packages
 
@@ -282,5 +295,5 @@ Decisions are grouped by category. Add new decisions to the relevant category.
 |---|---|
 | Dotfiles installs git-annex but wires no remote | A backup remote is a property of a corpus on a machine, not of the machine: ENIAC uses a local folder, the client laptop uses the client's OneDrive. The grid (linter connect-intake) wires it and can re-point it with `git annex enableremote`. Dotfiles installs the tool; the grid decides where the bytes go. |
 | annex.largefiles is never set globally | A git config value for annex.largefiles **overrides** a repo's own .gitattributes. Verified live on 2026-07-12: a global `annex.largefiles=nothing` silently un-annexed the TDBI intake L0 tier and sent raw artifacts into the git object store even though .gitattributes said to annex them. Which files annex is a property of the corpus, and only the corpus may declare it. 3_deploy.sh actively unsets it. |
-| annex.autocommit=false | Every commit on the grid goes through herald's commit gate, where a human reads the diff first. Annex never commits on our behalf. |
+| annex.autocommit=false | Every commit on the grid goes through the terminate gate, where the work is verified before anything is written. Annex never commits on our behalf. The gate used to be herald's and moved under TDBI's O-1369, and the session ritual that wrapped it was retired in O-1386; the rule outlived both, because the point was never which citizen held the gate. |
 | 2_wipe.sh never touches annexed content | The L0 tier is evidence and nothing may delete it. Uninstalling the tool must not destroy the data — reinstall and `git annex get` restores access. |
