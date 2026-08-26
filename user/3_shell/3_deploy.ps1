@@ -1,10 +1,10 @@
-# 3_deploy.ps1 - Deploy the dotfiles shell config into the PowerShell profile
+# 3_deploy.ps1 - Deploy the dotfiles shell config into the PowerShell profile and Git Bash
 #
 # Usage:
 #   .\3_deploy.ps1
 #
 # What it does:
-#   - Appends the dotfiles block to your PowerShell profile
+#   - Appends the dotfiles block to your PowerShell profile and to ~/.bashrc
 #   - Wraps it in markers so 2_wipe.ps1 can remove it cleanly
 #   - Backs the profile up first
 #   - Skips if the block is already present (idempotent)
@@ -77,7 +77,7 @@ Write-Host "Backed up profile to: $backup"
 # Skipping this block no longer ends the script: the TDBI path and the shims below have their own
 # checks and must still run on a machine whose profile block was deployed by an older version.
 Write-Host ''
-Write-Host '[1/3] Appending the dotfiles block to the profile...'
+Write-Host '[1/4] Appending the dotfiles block to the profile...'
 
 $miniforge = Join-Path $env:LOCALAPPDATA 'miniforge3'
 $skipMainBlock = $false
@@ -130,7 +130,7 @@ $tdbiRoot = Join-Path $githubPath 'TDBI'
 $tdbiBin = Join-Path $tdbiRoot 'bin'
 
 Write-Host ''
-Write-Host '[2/3] Deploying TDBI bin PATH...'
+Write-Host '[2/4] Deploying TDBI bin PATH...'
 if ((Get-Content $PROFILE -Raw) -match [regex]::Escape($MarkerTdbiStart)) {
     Write-Host '      TDBI bin PATH already deployed - skipping.'
 } else {
@@ -154,7 +154,7 @@ $MarkerTdbiEnd
 # and that is knowable only here - which is why the committed shims hardcoded the dotfiles WSL
 # standard and had no .cmd twin, so the bare word `herald` resolved to nothing on this platform.
 Write-Host ''
-Write-Host '[3/3] Generating TDBI citizen shims...'
+Write-Host '[3/4] Generating TDBI citizen shims...'
 $generator = Join-Path $tdbiRoot 'tools\generate_shims.py'
 $python = Join-Path $miniforge 'python.exe'
 if (-not (Test-Path $generator)) {
@@ -183,6 +183,143 @@ if (-not (Test-Path $generator)) {
     }
 }
 
+# ── 4. The Git Bash profile ───────────────────────────────────────────────────
+# The team tree runs in Git Bash, not PowerShell (REC-E-0025). Git Bash ships with Git for
+# Windows and needs no elevation, which is the same reason this whole tree exists -- so the
+# no-admin machine gets a real POSIX shell without WSL. This section writes the bash twin of the
+# block above. Both are deployed: PowerShell stays working on machines already using it, and the
+# DEFAULT terminal is what decides which one you land in (2_vscode/global/settings.json).
+Write-Host ''
+Write-Host '[4/4] Deploying the Git Bash profile...'
+
+# Git Bash speaks POSIX paths. A Windows path with backslashes inside a bashrc is not a path, it
+# is a string with escape sequences in it, so every path crossing into the block is converted.
+function ConvertTo-PosixPath([string]$p) {
+    if ([string]::IsNullOrWhiteSpace($p)) { return '' }
+    $x = $p -replace '\\', '/'
+    if ($x -match '^([A-Za-z]):(.*)$') { return "/$($Matches[1].ToLower())$($Matches[2])" }
+    return $x
+}
+
+# LF and no BOM, always. A CRLF .bashrc makes bash report `$'\r': command not found` on every
+# line it manages to read, and a BOM breaks the very first one before that. Add-Content on
+# Windows PowerShell 5.1 gives you both, which is why this goes through .NET directly.
+$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+function Add-BashText([string]$Path, [string]$Text) {
+    [System.IO.File]::AppendAllText($Path, ($Text -replace "`r`n", "`n"), $Utf8NoBom)
+}
+
+# Git Bash takes HOME from %USERPROFILE% unless something already set it, and that is where it
+# looks for both files.
+$bashHome    = $env:USERPROFILE
+$bashrc      = Join-Path $bashHome '.bashrc'
+$bashProfile = Join-Path $bashHome '.bash_profile'
+
+$miniforgePosix = ConvertTo-PosixPath $miniforge
+$githubPosix    = ConvertTo-PosixPath $githubPath
+$tdbiBinPosix   = ConvertTo-PosixPath $tdbiBin
+
+$MarkerProfileStart = '# >>> dotfiles bash_profile >>>'
+$MarkerProfileEnd   = '# <<< dotfiles bash_profile <<<'
+
+foreach ($f in @($bashrc, $bashProfile)) {
+    if (-not (Test-Path $f)) { New-Item -ItemType File -Path $f -Force | Out-Null }
+}
+
+# Back both up on the same clock as the PowerShell profile above.
+foreach ($f in @($bashrc, $bashProfile)) {
+    Copy-Item $f "$f.bak.$(Get-Date -Format 'yyyyMMddHHmmss')" -Force
+}
+
+# -- 4a. The main block --------------------------------------------------------
+if ((Get-Content $bashrc -Raw) -match [regex]::Escape($MarkerStart)) {
+    Write-Host '      bash shell config already deployed - skipping.'
+} else {
+    $bashBlock = @"
+$MarkerStart
+# Managed by dotfiles/user/3_shell/3_deploy.ps1 - do not edit manually
+# Run user\3_shell\2_wipe.ps1 to remove, 3_deploy.ps1 to redeploy
+
+# -- Conda on PATH --------------------------------------------------------------
+# The user-scope Miniforge, installed with /AddToPath=0 so PATH is owned here. Not `conda
+# activate`: that needs `conda init bash` to have run, and PATH alone is what the PowerShell
+# twin does. Same interpreter either way.
+export PATH="${miniforgePosix}:${miniforgePosix}/Scripts:${miniforgePosix}/Library/bin:`$PATH"
+
+# -- Navigation -----------------------------------------------------------------
+alias ..='cd ..'                 # go up one directory
+alias ...='cd ../..'             # go up two directories
+alias gh='cd "$githubPosix"'     # jump to the GitHub root
+
+# -- File listing ---------------------------------------------------------------
+alias ll='ls -la'                # detailed listing including hidden entries
+
+# -- Git shortcuts --------------------------------------------------------------
+alias gs='git status'            # show working tree status
+alias ga='git add -A'            # stage all changes
+alias gc='git commit -m'         # commit with message - usage: gc "message"
+alias gp='git push'              # push to remote
+alias gd='git diff'              # show unstaged changes
+alias gl='git log --oneline -10' # show last 10 commits in compact format
+
+# -- Environment ----------------------------------------------------------------
+export EDITOR=nano               # default text editor
+export HISTSIZE=10000            # commands kept in session history
+export HISTFILESIZE=20000        # commands kept in the history file
+export HISTCONTROL=ignoredups    # do not save duplicate commands
+
+# -- Embedding thread cap -------------------------------------------------------
+# ONNX defaults to one thread per core, which took a 32-core machine down mid-index. As on both
+# twins: this is NOT the binding cap. The grid runs citizens through non-interactive shells that
+# never load this file, so the real limit is the default in TDBI's lib/retrieval.py.
+export TDBI_EMBED_THREADS=4
+export OMP_NUM_THREADS=4
+$MarkerEnd
+"@
+    Add-BashText $bashrc "`n$bashBlock`n"
+    Write-Host "      Block appended to $bashrc"
+}
+
+# -- 4b. TDBI bin on PATH ------------------------------------------------------
+# Its own marker and its own check, for the same reason the PowerShell side has one: a machine
+# deployed before this section existed would see the main marker, skip, and never pick it up.
+if ((Get-Content $bashrc -Raw) -match [regex]::Escape($MarkerTdbiStart)) {
+    Write-Host '      bash TDBI bin PATH already deployed - skipping.'
+} else {
+    $bashTdbiBlock = @"
+$MarkerTdbiStart
+# Managed by dotfiles/user/3_shell/3_deploy.ps1 - do not edit manually
+# Citizen shims: herald, orchestrator, linter, registrar, librarian, consolidator. They are
+# GENERATED into that directory at deploy, never committed (O-1251). On this platform they are
+# .cmd files; Git Bash resolves and runs those as bare words the same way cmd does.
+export PATH="`$PATH:$tdbiBinPosix"
+# The GitHub root, exported so it is available interactively - GRID-RUNBOOK writes repo paths
+# against it so a copied block runs on any machine without hardcoding one machine's layout.
+export DOTFILES_GITHUB_PATH="$githubPosix"
+$MarkerTdbiEnd
+"@
+    Add-BashText $bashrc "`n$bashTdbiBlock`n"
+    Write-Host "      TDBI bin PATH deployed: $tdbiBinPosix"
+}
+
+# -- 4c. Make .bash_profile source .bashrc -------------------------------------
+# Git Bash opens a LOGIN shell, which reads .bash_profile and never touches .bashrc on its own.
+# Without this line everything above is written correctly and loaded by nothing.
+if ((Get-Content $bashProfile -Raw) -match [regex]::Escape($MarkerProfileStart)) {
+    Write-Host '      .bash_profile already sources .bashrc - skipping.'
+} else {
+    $profileBlock = @"
+$MarkerProfileStart
+# Managed by dotfiles/user/3_shell/3_deploy.ps1 - do not edit manually
+# Git Bash starts a login shell, which reads this file and not .bashrc.
+[ -f ~/.bashrc ] && . ~/.bashrc
+$MarkerProfileEnd
+"@
+    Add-BashText $bashProfile "`n$profileBlock`n"
+    Write-Host "      .bash_profile now sources .bashrc"
+}
+
 Write-Host ''
 Write-Host '=== Shell deploy complete. ==='
-Write-Host '    Open a new PowerShell window, or run: . $PROFILE'
+Write-Host '    Git Bash:   open a new terminal, or run: source ~/.bashrc'
+Write-Host '    PowerShell: open a new window, or run: . $PROFILE'

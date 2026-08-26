@@ -16,7 +16,7 @@ Write-Host '=== Shell Setup (checks only) ==='
 Write-Host ''
 
 # ── 1. Profile location ───────────────────────────────────────────────────────
-Write-Host '[1/2] Checking the profile path...'
+Write-Host '[1/3] Checking the profile path...'
 Write-Host "      Profile: $PROFILE"
 
 $profileDir = Split-Path -Parent $PROFILE
@@ -40,7 +40,7 @@ if ($profileDir -like '*OneDrive*') {
 # A Restricted policy does not just block these scripts, it stops the PROFILE loading at all -
 # so the deploy would appear to succeed and change nothing about a new terminal.
 Write-Host ''
-Write-Host '[2/2] Checking the execution policy...'
+Write-Host '[2/3] Checking the execution policy...'
 $policy = Get-ExecutionPolicy -Scope CurrentUser
 if ($policy -in @('Restricted', 'Undefined', 'AllSigned')) {
     Write-Host "      CurrentUser policy is '$policy' - your profile may not load."
@@ -48,6 +48,35 @@ if ($policy -in @('Restricted', 'Undefined', 'AllSigned')) {
     Write-Host '        Set-ExecutionPolicy -Scope CurrentUser RemoteSigned'
 } else {
     Write-Host "      Policy is '$policy' - OK."
+}
+
+# ── 3. Git Bash ───────────────────────────────────────────────────────────────
+# Git Bash is the shell this tree deploys for (REC-E-0025). It ships with Git for Windows and
+# installs per-user, which is the same reason this tree exists at all: a real POSIX shell on a
+# machine with no admin rights and no WSL. Without it the bash half of 3_deploy.ps1 writes files
+# that nothing ever reads.
+Write-Host ''
+Write-Host '[3/3] Checking for Git Bash...'
+$gitBash = @(
+    (Join-Path $env:ProgramFiles 'Git\bin\bash.exe'),
+    (Join-Path ${env:ProgramFiles(x86)} 'Git\bin\bash.exe'),
+    (Join-Path $env:LOCALAPPDATA 'Programs\Git\bin\bash.exe')
+) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+
+if ($gitBash) {
+    Write-Host "      Found: $gitBash"
+} else {
+    Write-Host '      NOT FOUND. Install Git for Windows, which carries it:'
+    Write-Host '        winget install --id Git.Git -e --scope user'
+    Write-Host '      The deploy still runs without it, but nothing will read what it writes.'
+}
+
+# Git Bash takes HOME from %USERPROFILE% unless HOME is already set, and a HOME pointing
+# somewhere else is why a correctly deployed .bashrc can appear to be ignored.
+if ($env:HOME -and $env:HOME -ne $env:USERPROFILE) {
+    Write-Host ''
+    Write-Host "      NOTE: HOME is set to $env:HOME, not $env:USERPROFILE."
+    Write-Host '      3_deploy.ps1 writes to USERPROFILE, so Git Bash would read a different file.'
 }
 
 Write-Host ''

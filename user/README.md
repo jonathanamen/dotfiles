@@ -43,9 +43,11 @@ interpreter, and those failures are real.
 ## Why a second tree and not a flag
 
 The modules at the repo root are bash scripts targeting a Linux userland: `1_conda` fetches the
-Linux Miniforge behind `sudo apt install wget`, `3_shell` writes `~/.bashrc`, `4_node` runs
-`sudo apt install nodejs npm`. Those are not options that a switch can turn off — they are a
-different operating system. A flag would have meant a conditional in every script and two
+Linux Miniforge behind `sudo apt install wget`, `4_node` runs `sudo apt install nodejs npm`,
+`5_annex` installs `git-annex` the same way. Those are not options that a switch can turn off —
+they are a different operating system. Note that it is the `sudo apt` and the Linux binaries that
+separate the trees, not bash itself: this tree now writes a `~/.bashrc` too, for Git Bash, which
+is Windows-native and needs no elevation. A flag would have meant a conditional in every script and two
 untested paths through each one.
 
 What is genuinely shared is the **configuration data**, and that is not duplicated here:
@@ -64,13 +66,49 @@ Only the scripts differ. Edit a setting once and both platforms get it.
 |---|---|---|
 | `1_conda` | yes | Miniforge, "Just Me", into `%LOCALAPPDATA%\miniforge3` |
 | `2_vscode` | yes | Settings, keybindings and extensions into `%APPDATA%\Code\User` |
-| `3_shell` | yes | PowerShell profile, the counterpart of `~/.bashrc` |
+| `3_shell` | yes | Both shells: the PowerShell profile *and* `~/.bashrc` for Git Bash. See below |
 | `4_azure_cli` | yes | Az PowerShell module from PSGallery, into the user's module path. No elevation |
 | `5_pac_cli` | yes | Power Platform CLI (`pac`) via winget |
 | `4_node` | **no counterpart** | Node is only here for Claude Code, which this deploy does not use |
 | `5_annex` | **no counterpart** | `git-annex` has no user-scope Windows install, and this machine is not an L0 backup target |
 
 `bootstrap.ps1` deploys all five that say yes, in that order.
+
+### Which shell you land in
+
+`3_shell` deploys the same configuration twice: to the PowerShell profile, and to `~/.bashrc` for
+**Git Bash**. Both stay working, and **PowerShell stays the default**. Nothing in this repo sets
+`terminal.integrated.defaultProfile.windows`, so a dev who prefers bash sets it themselves:
+
+```json
+"terminal.integrated.defaultProfile.windows": "Git Bash"
+```
+
+The reason both are deployed is that a Git Bash terminal otherwise starts with nothing — no conda
+on PATH, no TDBI bin, no aliases — so choosing bash used to mean choosing a worse environment.
+Now it does not, and the choice is a preference rather than a downgrade.
+
+Git Bash is worth supporting because it ships with Git for Windows, installs per-user with no
+elevation, and gives a real POSIX shell on a machine that has no WSL, which is the same constraint
+the whole `user/` tree exists to satisfy. The scripts themselves stay PowerShell: they run once at
+deploy, and rewriting them would buy nothing a dev can see.
+
+Three managed blocks land on the bash side, each with its own markers and its own presence check:
+the main block and the TDBI PATH block in `~/.bashrc`, and a sourcing line in `~/.bash_profile`.
+That last one is not optional. Git Bash opens a **login** shell, which reads `.bash_profile` and
+never touches `.bashrc` on its own, so without it everything else is written correctly and loaded
+by nothing.
+
+`HOME` matters here. Git Bash takes it from `%USERPROFILE%` unless something already set it, which
+is where `3_deploy.ps1` writes. If your `HOME` points elsewhere, Git Bash reads a different file
+than the one the deploy wrote, and `0_setup.ps1` says so rather than letting you find out later.
+
+The bash files are written with LF endings and no BOM, through .NET rather than `Add-Content`.
+Windows PowerShell 5.1 gives you CRLF and a BOM, and bash answers a CRLF `.bashrc` with
+``$'\r': command not found`` on every line it manages to read. `4_test.ps1` checks for stray CR
+bytes for exactly that reason, and then launches a real login shell to confirm `python` resolves
+to the dotfiles Miniforge -- because a file that reads correctly and loads into nothing is the
+failure mode this module keeps producing.
 
 **The slot numbers do not pair with the root tree.** `4_azure_cli` is not a Windows `4_node` and
 `5_pac_cli` is not a Windows `5_annex`; the root tree's 4 and 5 have no counterpart here at all,

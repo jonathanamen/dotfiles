@@ -23,7 +23,7 @@ Write-Host '=== Shell Test ==='
 Write-Host ''
 
 # ── 1. The block is present and complete ──────────────────────────────────────
-Write-Host '[1/3] Checking the profile...'
+Write-Host '[1/4] Checking the PowerShell profile...'
 
 if (-not (Test-Path $PROFILE)) {
     Write-Host "      FAIL: no profile at $PROFILE"
@@ -49,7 +49,7 @@ if (-not (Test-Path $PROFILE)) {
 
 # ── 2. A fresh shell picks up conda ───────────────────────────────────────────
 Write-Host ''
-Write-Host '[2/3] Checking that a new shell gets conda on PATH...'
+Write-Host '[2/4] Checking that a new shell gets conda on PATH...'
 
 $miniforge = Join-Path $env:LOCALAPPDATA 'miniforge3'
 if (-not (Test-Path (Join-Path $miniforge 'python.exe'))) {
@@ -76,7 +76,7 @@ if (-not (Test-Path (Join-Path $miniforge 'python.exe'))) {
 # bin/ held bash shims and no .cmd twin, and nothing put it on PATH. Every check that only reads
 # the profile passed the entire time.
 Write-Host ''
-Write-Host '[3/3] Checking the TDBI citizen shims...'
+Write-Host '[3/4] Checking the TDBI citizen shims...'
 
 # Read the deployed path out of the profile rather than re-deriving it: the point is to test what
 # was DEPLOYED, and a second copy of the derivation would agree with itself while disagreeing with
@@ -105,6 +105,59 @@ if (-not $tdbiRoot) {
     } else {
         Write-Host '      FAIL shims are missing or stale - run 3_deploy.ps1'
         $failures += 'TDBI shims stale'
+    }
+}
+
+# ── 4. The Git Bash profile ───────────────────────────────────────────────────
+# Same principle as check 2: reading the file proves nothing. A .bashrc written with CRLF is
+# present, complete, and correct on inspection, and bash still refuses every line in it with
+# `$'\r': command not found`. Only launching a login shell shows that.
+Write-Host ''
+Write-Host '[4/4] Checking the Git Bash profile...'
+
+$bashHome = $env:USERPROFILE
+$bashrc = Join-Path $bashHome '.bashrc'
+$bashProfile = Join-Path $bashHome '.bash_profile'
+
+$gitBash = @(
+    (Join-Path $env:ProgramFiles 'Git\bin\bash.exe'),
+    (Join-Path ${env:ProgramFiles(x86)} 'Git\bin\bash.exe'),
+    (Join-Path $env:LOCALAPPDATA 'Programs\Git\bin\bash.exe')
+) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+
+if (-not (Test-Path $bashrc)) {
+    Write-Host '      FAIL: no .bashrc - run 3_deploy.ps1'
+    $failures += 'bashrc missing'
+} elseif ((Get-Content $bashrc -Raw) -notmatch [regex]::Escape($MarkerStart)) {
+    Write-Host '      FAIL: dotfiles block not in .bashrc - run 3_deploy.ps1'
+    $failures += 'bash block missing'
+} elseif ((Get-Content $bashProfile -Raw -ErrorAction SilentlyContinue) -notmatch 'bashrc') {
+    Write-Host '      FAIL: .bash_profile does not source .bashrc, so nothing above loads'
+    $failures += 'bash_profile not sourcing'
+} else {
+    # CRLF is the failure this catches, and it is invisible to every other check here.
+    if ([System.IO.File]::ReadAllBytes($bashrc) -contains 13) {
+        Write-Host '      FAIL .bashrc contains CR bytes - bash will reject every line it manages'
+        $failures += 'bashrc has CRLF'
+    } else {
+        Write-Host '      OK   .bashrc is LF-only and .bash_profile sources it'
+    }
+
+    if (-not $gitBash) {
+        Write-Host '      SKIP: Git Bash not found, so the loaded state cannot be checked.'
+        Write-Host '            Install Git for Windows and rerun.'
+    } else {
+        # -lc, not -c: a login shell is what Git Bash opens and what reads .bash_profile.
+        $whichPython = & $gitBash -lc 'command -v python 2>/dev/null' 2>$null
+        if ($whichPython -and $whichPython -match 'miniforge3') {
+            Write-Host "      OK   python resolves to $whichPython in a login shell"
+        } elseif ($whichPython) {
+            Write-Host "      FAIL python resolves to $whichPython, not the dotfiles Miniforge"
+            $failures += 'wrong python in Git Bash'
+        } else {
+            Write-Host '      FAIL python is not on PATH in a Git Bash login shell'
+            $failures += 'python not on PATH in Git Bash'
+        }
     }
 }
 
