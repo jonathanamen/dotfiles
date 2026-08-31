@@ -4,6 +4,12 @@ Personal-only additions layered on top of a team dotfiles deploy (e.g. `dotfiles
 machines that run both. Not part of `bootstrap.ps1` on purpose -- this runs standalone, and always
 AFTER whichever team slug is deployed, never before.
 
+**Blast radius: this is the only directory in this repo safe to run on a machine with a team deploy
+already on it.** Everything else under `user/` (including `user/bootstrap.ps1` and every other
+`user/*` module) is a full standalone deploy that WIPES AND REPLACES VS Code extensions/settings and
+Miniforge -- run one of those here instead of this overlay and you will strip out the team's config.
+If you are not sure which one to run, run this one.
+
 **Siloed from the team repo by design.** Nothing here edits, hooks into, or is even referenced by
 `dotfiles-team`. It only reads/patches what a team deploy already wrote (`%APPDATA%\Code\User\settings.json`,
 the PowerShell profile, `.bashrc`) and adds to it -- a team repo stays fully independent and

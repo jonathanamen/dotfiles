@@ -26,6 +26,7 @@ $ImportNames = @{
     'sqlite-vec'  = 'sqlite_vec'
     'pyinstaller' = 'PyInstaller'   # installs lowercase, imports capitalised
     'pyyaml'      = 'yaml'          # installs as pyyaml, imports as yaml
+    'python-pptx' = 'pptx'          # installs with a distribution name that differs from its import
 }
 
 $failures = @()

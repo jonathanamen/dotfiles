@@ -24,7 +24,7 @@ Write-Host '[1/1] Installing Az PowerShell module (CurrentUser scope)...'
 if (Get-Module -ListAvailable -Name Az.Accounts -ErrorAction SilentlyContinue) {
     $installed = (Get-Module -ListAvailable -Name Az.Accounts | Sort-Object Version -Descending | Select-Object -First 1).Version
     Write-Host "      Already installed (Az.Accounts $installed). Running update check..."
-    Update-Module Az -Scope CurrentUser -Force -ErrorAction SilentlyContinue
+    Update-Module Az -Force -ErrorAction SilentlyContinue
 } else {
     Install-Module Az -Scope CurrentUser -Repository PSGallery -Force -AllowClobber
 }

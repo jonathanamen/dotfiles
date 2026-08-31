@@ -4,6 +4,16 @@ The same dotfiles, for a machine where you are **not a local administrator** and
 available. Everything here installs into your own user profile and touches nothing that needs
 elevation.
 
+> [!WARNING]
+> **This tree is a full, standalone deploy, not an overlay.** `bootstrap.ps1` (and every module's own
+> `2_wipe.ps1` / `3_deploy.ps1`) WIPES existing VS Code extensions/settings and Miniforge, then
+> replaces them with this repo's own config. If this machine already has a team dotfiles repo (e.g.
+> `dotfiles-team`) deployed, running anything in this directory will strip that out from under it.
+>
+> Only [`personal_overlay/`](personal_overlay/README.md) is safe to run alongside a team deploy --
+> it merges settings instead of overwriting them. If a team repo is already on this machine, go
+> there instead of running `bootstrap.ps1`.
+
 ## A WSL machine may need one module from here
 
 The tree as a whole is for a machine with no WSL, and that is still what `bootstrap.ps1` is for. But

@@ -57,6 +57,12 @@ Write-Host '--- Wiping all modules ---'
 Write-Host ''
 foreach ($module in ($Modules | Sort-Object -Descending)) {
     $wipe = Join-Path $RepoDir "$module\2_wipe.ps1"
+    # 5_pac_cli has no 2_wipe.ps1 -- pac has no clean per-user uninstall this tree provides.
+    if (-not (Test-Path $wipe)) {
+        Write-Host "Skipping $module wipe (no 2_wipe.ps1)..."
+        Write-Host ''
+        continue
+    }
     Write-Host "Wiping $module..."
     # -Force because a bootstrap must run unattended. Every 2_wipe.ps1 takes the switch, so this
     # call is identical for all of them; the vscode wipe is the one that would otherwise stop and

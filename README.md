@@ -21,6 +21,19 @@ The two trees share their configuration data and differ only in their scripts, s
 in one applies to both. One case runs the other way: a WSL machine also needs `user/1_conda`,
 because building a Windows executable requires a Windows interpreter. `user/README.md` covers it.
 
+### Already have a team dotfiles repo (e.g. `dotfiles-team`) deployed on this machine?
+
+**Do not run `user/bootstrap.ps1` or any `user/*/2_wipe.ps1` / `user/*/3_deploy.ps1` script here.**
+Those deploy a full, standalone machine setup and will WIPE and REPLACE whatever a team repo already
+installed -- VS Code settings become a flat `Copy-Item -Force`, and the team's curated extension list
+gets uninstalled and swapped for this repo's own list. This has actually happened: an assistant ran
+`user/bootstrap.ps1` on a machine that already had `dotfiles-team` deployed, and it silently stripped
+the team's 13 VS Code extensions down to this repo's 6.
+
+What you actually want is **[`user/personal_overlay/`](user/personal_overlay/README.md)** -- the one
+piece of this repo built to layer on top of an existing team deploy without touching it. Read its
+README before running anything else in this repo on a machine that is not exclusively yours.
+
 ## Table of contents
 
 0. Wipe and reinstall VS Code
